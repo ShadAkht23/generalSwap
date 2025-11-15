@@ -1,3 +1,5 @@
 package com.shard.generalswap.body;
 
-public record SwapStage(String playerName, long durationTicks) {}
+import org.bukkit.entity.Player;
+
+public record SwapStage(Player player, long durationTicks) {}

@@ -1,5 +1,7 @@
 package com.shard.generalswap.body;
 
+import com.shard.generalswap.state.PlayerState;
+import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -11,12 +13,16 @@ public class Body {
     private final String name;
     //private final String id;
     private Location location;
-    private int state;
+    //private int state;
+    private PlayerState state;
 
-    public Body(int startingState, String n) {
+    public Body(PlayerState startingState, String n) {
         //this.id = id;
         //this.location = baseLocation;
-        state = startingState;
+        if (startingState != null) {
+            state = startingState;
+        }
+
         name = n;
     }
 
@@ -24,15 +30,16 @@ public class Body {
     //public Location getLocation() { return location; }
 
     public void applyPlayerState(Player player) {
-        player.teleport(location);
+        PlayerStateUtil.applyPlayerState(player, state);
     }
 
-    public void set(int s) {
+
+    public void set(PlayerState s) {
         state = s;
     }
-    public int get() {
+    /*public int get() {
         return state;
-    }
+    }*/
 
 
     /*public void updateLocation(Location newLoc) {

@@ -6,7 +6,15 @@ import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.SwapEvent;
 import com.shard.generalswap.body.BodyRegistry;
 import com.shard.generalswap.state.PlayerRegistry;
+import com.shard.generalswap.util.BukkitCompat;
+import com.shard.generalswap.util.PlayerStateUtil;
 import com.shard.generalswap.util.Scheduler;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 
@@ -39,7 +47,7 @@ public class SwapOrchestrator {
         }*/
     }
 
-    public void scheduleSwap(String playerIn, String playerOut, Body state, BodyController controller, long delayTicks) {
+    public void scheduleSwap(Player playerIn, Player playerOut, Body state, BodyController controller, long delayTicks) {
         long target = currentTick + delayTicks;
         queue.computeIfAbsent(target, k -> new ArrayList<>())
                 .add(new SwapEvent(playerIn, playerOut, state, controller));
@@ -49,14 +57,13 @@ public class SwapOrchestrator {
         // TODO: perform the actual player→body swap logic
 
         // event.playerOut() may be null for first swap.
-        Set<String> playersInVoid = new HashSet<>();
+        Set<Player> playersInVoid = new HashSet<>();
         for (SwapEvent event : events) {
             // a player is being swapped out of the body
             // save that player's state into the body state
             if (event.playerOut() != null) {
                 playersInVoid.add(event.playerOut());
-                event.state().set(playerRegistry.get(event.playerOut()));
-                playerRegistry.save(event.playerOut(), -1); // in void.
+                event.state().set(PlayerStateUtil.capturePlayerState(event.playerOut()));
             } else {
                 //event.state().set(0); // the empty state (ie empty inventory etc )
             }
@@ -65,16 +72,51 @@ public class SwapOrchestrator {
         for (SwapEvent event : events) {
             // set player in's state to be the body its going to inhabit
             playersInVoid.remove(event.playerIn());
-            playerRegistry.save(event.playerIn(), event.state().get());
+            event.state().applyPlayerState(event.playerIn());
+            event.playerIn().sendMessage("you have been swapped in!");
         }
-        for (String player : playersInVoid) {
-            playerRegistry.save(player, -1);
+        // players in void contains players who are swapped out but not swapped in.
+
+        for (Player player : playersInVoid) {
+            applyInactiveEffects(player);
+
+            player.sendMessage("you are swapped out rn");
         }
-        playerRegistry.print();
+        //playerRegistry.print();
 
         // callback:
         for (SwapEvent event : events) {
             event.callBack().onSwapExecuted();
+        }
+    }
+
+    public void applyInactiveEffects(Player player) {
+        PlayerStateUtil.clear(player);
+        player.getInventory().setArmorContents(new ItemStack[]{});
+        player.getInventory().setItemInOffHand(null);
+        player.updateInventory();
+
+        PotionEffectType blindness = BukkitCompat.resolvePotionEffect("blindness");
+        if (blindness != null)
+            player.addPotionEffect(new PotionEffect(blindness, Integer.MAX_VALUE, 1, false, false));
+        PotionEffectType invis = BukkitCompat.resolvePotionEffect("invisibility");
+        if (invis != null)
+            player.addPotionEffect(new PotionEffect(invis, Integer.MAX_VALUE, 1, false, false));
+        player.setGameMode(GameMode.ADVENTURE);
+        // Allow flight while caged to prevent server kicking for "flying"
+        try {
+            player.setAllowFlight(true);
+        } catch (Exception ignored) {
+        }
+        try {
+            player.setFlying(false);
+        } catch (Exception ignored) {
+        }
+
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (!viewer.equals(player)) {
+                viewer.hidePlayer(SwapPlugin.get(), player);
+            }
         }
     }
 }

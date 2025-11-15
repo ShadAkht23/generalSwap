@@ -3,6 +3,7 @@ package com.shard.generalswap.body;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerRegistry;
 import com.shard.generalswap.state.PlayerState;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -10,42 +11,42 @@ import java.util.List;
 public final class BodyController {
     private final Body body;
     private final List<SwapStage> cycle;
-    private final PlayerRegistry playerRegistry;
+    //private final PlayerRegistry playerRegistry;
     private int index = 0;
     private boolean firstSwap = true;
     private final SwapOrchestrator orchestrator;
 
-    public BodyController(int i, String name, List<SwapStage> cycle, SwapOrchestrator orchestrator, PlayerRegistry pr) {
-        this.body = new Body(i, name);
+    public BodyController(PlayerState ps, String name, List<SwapStage> cycle, SwapOrchestrator orchestrator) {
+        this.body = new Body(ps, name);
         this.cycle = cycle;
         this.orchestrator = orchestrator;
-        this.playerRegistry = pr;
+        //this.playerRegistry = pr;
     }
 
     public void start() {
         scheduleNext();
     }
 
-    public String currentHost() {
-        return cycle.get(index).playerName();
+    public Player currentHost() {
+        return cycle.get(index).player();
     }
 
 
     private void scheduleNext() {
         SwapStage stage = cycle.get(index);
-        String playerOut;
+        Player playerOut;
         long durationTicks;
         if (firstSwap) {
             playerOut = null;
             durationTicks = 1;
         } else {
-            playerOut = cycle.get((index - 1 + cycle.size()) % cycle.size()).playerName();
+            playerOut = cycle.get((index - 1 + cycle.size()) % cycle.size()).player();
             durationTicks = stage.durationTicks();
         }
         firstSwap = false;
 
         orchestrator.scheduleSwap(
-                stage.playerName(),
+                stage.player(),
                 playerOut,
                 body,
                 this,

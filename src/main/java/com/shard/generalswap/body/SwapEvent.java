@@ -1,8 +1,10 @@
 package com.shard.generalswap.body;
 
+import org.bukkit.entity.Player;
+
 public record SwapEvent(
-        String playerIn,
-        String playerOut,
+        Player playerIn,
+        Player playerOut,
         Body state,
         BodyController callBack
 ) {}
