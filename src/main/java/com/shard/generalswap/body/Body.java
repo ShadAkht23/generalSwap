@@ -2,6 +2,7 @@ package com.shard.generalswap.body;
 
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.PlayerStateUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -12,9 +13,12 @@ public class Body {
 
     private final String name;
     //private final String id;
-    private Location location;
-    //private int state;
+
     private PlayerState state;
+
+    private Player currentHost;
+    private Location spawn;
+
 
     public Body(PlayerState startingState, String n) {
         //this.id = id;
@@ -22,7 +26,7 @@ public class Body {
         if (startingState != null) {
             state = startingState;
         }
-
+        spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
         name = n;
     }
 
@@ -30,7 +34,13 @@ public class Body {
     //public Location getLocation() { return location; }
 
     public void applyPlayerState(Player player) {
+        currentHost = player;
+        player.setRespawnLocation(spawn);
         PlayerStateUtil.applyPlayerState(player, state);
+    }
+
+    public void setSpawn(Location loc) {
+        spawn = loc;
     }
 
 

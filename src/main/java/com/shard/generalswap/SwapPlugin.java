@@ -1,15 +1,13 @@
 package com.shard.generalswap;
 
-import com.shard.generalswap.body.BodyController;
-import com.shard.generalswap.body.SwapStage;
 import com.shard.generalswap.commands.StartCommand;
 import com.shard.generalswap.game.GameManager;
+import com.shard.generalswap.game.InactiveManager;
 import com.shard.generalswap.game.SwapOrchestrator;
-import com.shard.generalswap.state.PlayerRegistry;
+import com.shard.generalswap.listeners.EventListeners;
 import com.shard.generalswap.util.ConfigLoader;
 import com.shard.generalswap.util.ConfigSwapStage;
 import com.shard.generalswap.util.Configuration;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -44,9 +42,10 @@ public class SwapPlugin extends JavaPlugin {
             return;
         }
 
-        PlayerRegistry playerRegistry = new PlayerRegistry(players);
 
-        SwapOrchestrator orchestrator = new SwapOrchestrator(playerRegistry);
+        InactiveManager inactiveManager = new InactiveManager();
+        SwapOrchestrator orchestrator = new SwapOrchestrator(inactiveManager);
+
 
         StartCommand startCommand = new StartCommand(this);
         try {
@@ -61,9 +60,10 @@ public class SwapPlugin extends JavaPlugin {
             getLogger().severe("Error registering /gswap command: " + e.getMessage());
             e.printStackTrace();
         }
-
-        gameManager = new GameManager(this, orchestrator, config);
+        getServer().getPluginManager().registerEvents(new EventListeners(), this);
+        gameManager = new GameManager(this, orchestrator, config, inactiveManager);
     }
 
     public static SwapPlugin get() { return instance; }
+    public GameManager getGameManager() {return gameManager; }
 }

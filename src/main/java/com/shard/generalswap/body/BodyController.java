@@ -1,7 +1,6 @@
 package com.shard.generalswap.body;
 
 import com.shard.generalswap.game.SwapOrchestrator;
-import com.shard.generalswap.state.PlayerRegistry;
 import com.shard.generalswap.state.PlayerState;
 import org.bukkit.entity.Player;
 
