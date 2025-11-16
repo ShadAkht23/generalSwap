@@ -2,6 +2,7 @@ package com.shard.generalswap.body;
 
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerState;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -44,15 +45,17 @@ public final class BodyController {
         }
         firstSwap = false;
 
-        orchestrator.scheduleSwap(
+        body.setNextSwapTick(orchestrator.scheduleSwap(
                 stage.player(),
                 playerOut,
                 body,
                 this,
                 durationTicks
-        );
+        ));
 
     }
+
+
 
     /** Called by the orchestrator AFTER the swap is executed. */
     public void onSwapExecuted() {

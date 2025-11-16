@@ -32,6 +32,7 @@ public class InactiveManager {
 
     public void makeActive(Player p) {
         cagedPlayers.remove(p);
+        p.setGameMode(GameMode.SURVIVAL);
     }
 
     private void teleportToSharedCage(Player p) {

@@ -1,5 +1,7 @@
 package com.shard.generalswap.body;
 
+import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.Bukkit;
@@ -18,7 +20,7 @@ public class Body {
 
     private Player currentHost;
     private Location spawn;
-
+    public long nextSwapTick = 0;
 
     public Body(PlayerState startingState, String n) {
         //this.id = id;
@@ -32,6 +34,14 @@ public class Body {
 
    // public String getId() { return id; }
     //public Location getLocation() { return location; }
+
+    public void setNextSwapTick(long s) {
+        nextSwapTick = s;
+    }
+
+    public long ticksTillNextSwap() {
+        return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
+    }
 
     public void applyPlayerState(Player player) {
         currentHost = player;

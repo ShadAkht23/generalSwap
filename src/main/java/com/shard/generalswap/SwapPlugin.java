@@ -14,6 +14,23 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+/*
+TODO
+    title/messages for swapping + swapping out
+    handle server stop
+    handle player join + leave
+    handle portal thing
+    handle end portal thing
+    update hostile mob targetting
+
+
+
+
+
+
+ */
+
+
 public class SwapPlugin extends JavaPlugin {
 
     private static SwapPlugin instance;

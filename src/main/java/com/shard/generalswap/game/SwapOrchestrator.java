@@ -27,6 +27,10 @@ public class SwapOrchestrator {
         this.inactiveManager = inactiveManager;
     }
 
+    public long timeSinceBegan() {
+        return currentTick;
+    }
+
     public void tick() {
         currentTick++;
 
@@ -40,10 +44,11 @@ public class SwapOrchestrator {
         }*/
     }
 
-    public void scheduleSwap(Player playerIn, Player playerOut, Body state, BodyController controller, long delayTicks) {
+    public long scheduleSwap(Player playerIn, Player playerOut, Body state, BodyController controller, long delayTicks) {
         long target = currentTick + delayTicks;
         queue.computeIfAbsent(target, k -> new ArrayList<>())
                 .add(new SwapEvent(playerIn, playerOut, state, controller));
+        return target;
     }
 
     private void executeSwaps(List<SwapEvent> events) {

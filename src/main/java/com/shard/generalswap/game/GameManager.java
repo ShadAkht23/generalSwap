@@ -22,7 +22,9 @@ public class GameManager {
     private  List<BodyController> controllers;
     private final Configuration config;
     private final InactiveManager inactiveManager;
+    private final Visualizer visualizer;
     public PlayerInBody playerInBody;
+    public long startTick = 0;
     boolean started = false;
 
     public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager) {
@@ -31,6 +33,7 @@ public class GameManager {
         config = c;
         controllers = new ArrayList<>();
         this.inactiveManager = inactiveManager;
+        visualizer = new Visualizer();
     }
 
     public boolean gameStarted() {
@@ -66,7 +69,9 @@ public class GameManager {
             controller.start();
             controllers.add(controller);
         }
+        startTick = Bukkit.getCurrentTick() + 1;
         Bukkit.getScheduler().runTaskTimer(plugin, orchestrator::tick, 1L, 1L);
+        visualizer.startActionBarUpdates();
     }
 
 }

@@ -22,7 +22,7 @@ public class EventListeners implements Listener {
         // Cancel any damage to inactive runners in cages
         if (!plugin.getGameManager().gameStarted()) return;
         if (plugin.getGameManager().isSwappedOut(victim)) {
-            event.setCancelled(true);
+            //event.setCancelled(true);
         }
 
     }

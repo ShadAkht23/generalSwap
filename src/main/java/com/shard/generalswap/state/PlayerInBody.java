@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PlayerInBody {
     private final Map<Player, Body> playerToBody;
@@ -15,6 +16,10 @@ public class PlayerInBody {
         for (Player player : allPlayers) {
             playerToBody.put(player, null); // null meaning they are swapped out rn
         }
+    }
+
+    public Set<Map.Entry<Player, Body>> get() {
+        return playerToBody.entrySet();
     }
 
     public void switchBody(Player player, Body body) {
