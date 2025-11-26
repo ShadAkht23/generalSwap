@@ -24,7 +24,7 @@ public final class BodyController {
     }
 
     public void start() {
-        scheduleNext();
+        orchestrator.scheduleSwap(cycle.get(0).player(), null, body, this, 1);
     }
 
     public Player currentHost() {
@@ -36,17 +36,14 @@ public final class BodyController {
         SwapStage stage = cycle.get(index);
         Player playerOut;
         long durationTicks;
-        if (firstSwap) {
-            playerOut = null;
-            durationTicks = 1;
-        } else {
-            playerOut = cycle.get((index - 1 + cycle.size()) % cycle.size()).player();
-            durationTicks = stage.durationTicks();
-        }
+        playerOut = stage.player();
+        Player playerIn = cycle.get((index + 1) % cycle.size()).player();
+        durationTicks = stage.durationTicks();
+
         firstSwap = false;
 
         body.setNextSwapTick(orchestrator.scheduleSwap(
-                stage.player(),
+                playerIn,
                 playerOut,
                 body,
                 this,
@@ -59,7 +56,7 @@ public final class BodyController {
 
     /** Called by the orchestrator AFTER the swap is executed. */
     public void onSwapExecuted() {
-        index = (index + 1) % cycle.size();
         scheduleNext();
+        index = (index + 1) % cycle.size();
     }
 }
