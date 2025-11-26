@@ -11,9 +11,7 @@ import jdk.management.jfr.ConfigurationInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameManager {
 
@@ -60,6 +58,8 @@ public class GameManager {
         }
         playerInBody = new PlayerInBody(players);
 
+        Set<Player> swappedIn = new HashSet<Player>();
+
         for (Map.Entry<String, List<ConfigSwapStage>> css : config.bodies().entrySet()) {
             List<SwapStage> swapStages = new ArrayList<>();
             for (ConfigSwapStage ss : css.getValue()) {
@@ -67,8 +67,14 @@ public class GameManager {
             }
             BodyController controller = new BodyController(null, css.getKey(), swapStages, orchestrator);
             controller.start();
+            swappedIn.add(controller.currentHost());
             controllers.add(controller);
         }
+        players.removeAll(swappedIn);
+        for (Player inactive : players) {
+            inactiveManager.makeInactive(inactive);
+        }
+
         startTick = Bukkit.getCurrentTick() + 1;
         Bukkit.getScheduler().runTaskTimer(plugin, orchestrator::tick, 1L, 1L);
         visualizer.startActionBarUpdates();
