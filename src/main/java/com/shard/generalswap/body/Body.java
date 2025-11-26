@@ -47,10 +47,12 @@ public class Body {
         currentHost = player;
         player.setRespawnLocation(spawn);
         PlayerStateUtil.applyPlayerState(player, state);
+        System.out.println("setting respawn location: " + spawn.toString() + "for player: " + player.getName());
     }
 
     public void setSpawn(Location loc) {
         spawn = loc;
+        System.out.println("setting spawn: " + loc.toString() + " for body: " + name);
     }
 
 
@@ -61,6 +63,7 @@ public class Body {
         return state;
     }*/
 
+    public String getName() {return name;}
 
     /*public void updateLocation(Location newLoc) {
         this.location = newLoc;

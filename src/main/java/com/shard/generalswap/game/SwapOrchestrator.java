@@ -78,9 +78,11 @@ public class SwapOrchestrator {
             inactiveManager.makeActive(event.playerIn());
             gameManager.playerInBody.switchBody(event.playerIn(), event.state());
 
-            event.playerIn().sendMessage("you have been swapped in!");
+            event.playerIn().sendMessage("you have been swapped into body: " + event.state().getName());
         }
         // players in void contains players who are swapped out but not swapped in.
+
+
 
         for (Player player : playersInVoid) {
             inactiveManager.makeInactive(player);

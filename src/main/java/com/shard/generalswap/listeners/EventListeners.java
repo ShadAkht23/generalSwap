@@ -1,6 +1,8 @@
 package com.shard.generalswap.listeners;
 
+import com.destroystokyo.paper.event.player.PlayerSetSpawnEvent;
 import com.shard.generalswap.SwapPlugin;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -8,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerSpawnChangeEvent;
 import org.bukkit.plugin.EventExecutor;
 
 public class EventListeners implements Listener {
@@ -27,37 +30,23 @@ public class EventListeners implements Listener {
 
     }
 
-
-    // change spawn for body when host changes spawn.
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerSpawnChange(PlayerRespawnEvent event) {
-        if (!event.isBedSpawn() && !event.isAnchorSpawn()) {
+    @EventHandler
+    public void onPlayerSpawnPointChange(PlayerSetSpawnEvent event) {
+        if (!plugin.getGameManager().gameStarted())
+            return;
+        if (!(event.getCause() == PlayerSetSpawnEvent.Cause.BED ||
+            event.getCause() == PlayerSetSpawnEvent.Cause.RESPAWN_ANCHOR ||
+            event.getCause() == PlayerSetSpawnEvent.Cause.PLAYER_RESPAWN ||
+            event.getCause() == PlayerSetSpawnEvent.Cause.COMMAND)) {
             return;
         }
+        Player p  = event.getPlayer();
+        Location loc = event.getLocation();
+        if (loc != null) {
+            plugin.getGameManager().playerInBody.getBody(p).setSpawn(loc);
+            System.out.println("player reset bed");
+        }
 
-        Player player = event.getPlayer();
-        if (player == null || plugin.getGameManager().playerInBody.isSwappedOut(player)) {
-            return;
-        }
-        org.bukkit.Location spawn = null;
-        try {
-            java.lang.reflect.Method locator = player.getClass().getMethod("getRespawnLocation");
-            Object result = locator.invoke(player);
-            if (result instanceof org.bukkit.Location loc) {
-                spawn = loc;
-            }
-        } catch (NoSuchMethodException ignored) {
-            // Older API, fall back to event location
-        } catch (Throwable reflectiveFailure) {
-            plugin.getLogger().fine("Failed to read respawn location reflectively: " + reflectiveFailure.getMessage());
-        }
-        if (spawn == null) {
-            spawn = event.getRespawnLocation();
-        }
-        if (spawn != null && spawn.getWorld() != null) {
-
-            plugin.getGameManager().playerInBody.getBody(player).setSpawn(spawn);
-        }
     }
 
 
