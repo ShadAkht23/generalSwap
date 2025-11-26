@@ -33,6 +33,11 @@ public class InactiveManager {
     public void makeActive(Player p) {
         cagedPlayers.remove(p);
         p.setGameMode(GameMode.SURVIVAL);
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (!viewer.equals(p)) {
+                viewer.showPlayer(SwapPlugin.get(), p);
+            }
+        }
     }
 
     private void teleportToSharedCage(Player p) {
