@@ -3,38 +3,39 @@ package com.shard.generalswap.state;
 import com.shard.generalswap.body.Body;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PlayerInBody {
-    private final Map<Player, Body> playerToBody;
+    private final Map<UUID, Body> playerToBody;
 
-    public PlayerInBody(List<Player> allPlayers) {
+    public PlayerInBody(List<UUID> allPlayers) {
         playerToBody = new HashMap<>();
-        for (Player player : allPlayers) {
+        for (UUID player : allPlayers) {
+            if (player == null) {
+                System.out.println("WHTF??");
+
+            }
             playerToBody.put(player, null); // null meaning they are swapped out rn
         }
     }
 
-    public Set<Map.Entry<Player, Body>> get() {
+    public Set<Map.Entry<UUID, Body>> get() {
         return playerToBody.entrySet();
     }
 
-    public void switchBody(Player player, Body body) {
+    public void switchBody(UUID player, Body body) {
         playerToBody.put(player, body);
     }
 
-    public boolean isSwappedOut(Player player) {
+    public boolean isSwappedOut(UUID player) {
         return playerToBody.get(player) == null;
     }
 
-    public boolean isSwappedIn(Player player) {
+    public boolean isSwappedIn(UUID player) {
         return playerToBody.get(player) != null;
     }
 
-    public Body getBody(Player player) {
+    public Body getBody(UUID player) {
         return playerToBody.get(player);
     }
 }

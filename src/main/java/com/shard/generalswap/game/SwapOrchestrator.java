@@ -6,6 +6,7 @@ import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.SwapEvent;
 import com.shard.generalswap.util.PlayerStateUtil;
 import com.shard.generalswap.util.Scheduler;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -38,13 +39,9 @@ public class SwapOrchestrator {
         if (events == null) return;
         System.out.println("executing swaps at tick " + currentTick + ":");
         executeSwaps(events);
-        /*for (SwapEvent event : events) {
-            executeSwap(event);
-            event.controller().onSwapExecuted();
-        }*/
     }
 
-    public long scheduleSwap(Player playerIn, Player playerOut, Body state, BodyController controller, long delayTicks) {
+    public long scheduleSwap(UUID playerIn, UUID playerOut, Body state, BodyController controller, long delayTicks) {
         long target = currentTick + delayTicks;
         queue.computeIfAbsent(target, k -> new ArrayList<>())
                 .add(new SwapEvent(playerIn, playerOut, state, controller));
@@ -57,17 +54,18 @@ public class SwapOrchestrator {
         GameManager gameManager = SwapPlugin.get().getGameManager();
 
         // event.playerOut() may be null for first swap.
-        Set<Player> playersInVoid = new HashSet<>();
+        Set<UUID> playersInVoid = new HashSet<>();
         for (SwapEvent event : events) {
             // a player is being swapped out of the body
             // save that player's state into the body state
-            gameManager.playerInBody.switchBody(event.playerOut(), null);
+
 
             if (event.playerOut() != null) {
+                gameManager.playerInBody.switchBody(event.playerOut(), null);
                 playersInVoid.add(event.playerOut());
-                event.state().set(PlayerStateUtil.capturePlayerState(event.playerOut()));
-            } else {
-                //event.state().set(0); // the empty state (ie empty inventory etc )
+                // TODO VVVV abstract into a "read".
+                Player playOut = Bukkit.getPlayer(event.playerOut());
+                event.state().set(PlayerStateUtil.capturePlayerState(playOut));
             }
         }
 
@@ -78,15 +76,16 @@ public class SwapOrchestrator {
             inactiveManager.makeActive(event.playerIn());
             gameManager.playerInBody.switchBody(event.playerIn(), event.state());
 
-            event.playerIn().sendMessage("you have been swapped into body: " + event.state().getName());
+            Player playIn = Bukkit.getPlayer(event.playerIn());
+            playIn.sendMessage("you have been swapped into body: " + event.state().getName());
         }
         // players in void contains players who are swapped out but not swapped in.
 
 
 
-        for (Player player : playersInVoid) {
-            inactiveManager.makeInactive(player);
-
+        for (UUID pid : playersInVoid) {
+            inactiveManager.makeInactive(pid);
+            Player player = Bukkit.getPlayer(pid);
             player.sendMessage("you are swapped out rn");
         }
         //playerRegistry.print();

@@ -4,6 +4,7 @@ import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.util.BukkitCompat;
 import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
@@ -17,25 +18,32 @@ public class InactiveManager {
 
     private final Map<World, List<BlockState>> sharedCageBlocks;
     private final Map<World, Location> sharedCageCenters;
-    private final Set<Player> cagedPlayers;
+    private final Set<UUID> cagedPlayers;
 
     public InactiveManager() {
         cagedPlayers = new HashSet<>();
         sharedCageCenters = new java.util.HashMap<>();
         sharedCageBlocks  = new java.util.HashMap<>();
     }
-    public void makeInactive(Player p) {
-        applyInactiveEffects(p);
-        createOrEnsureSharedCage(p.getWorld());
-        teleportToSharedCage(p);
+    public void makeInactive(UUID p) {
+
+        // TODO if player is null then defer action.
+        Player player = Bukkit.getPlayer(p);
+
+        applyInactiveEffects(player);
+        createOrEnsureSharedCage(player.getWorld());
+        teleportToSharedCage(player);
     }
 
-    public void makeActive(Player p) {
+    public void makeActive(UUID p) {
         cagedPlayers.remove(p);
-        p.setGameMode(GameMode.SURVIVAL);
+
+        Player player = Bukkit.getPlayer(p);
+
+        player.setGameMode(GameMode.SURVIVAL);
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (!viewer.equals(p)) {
-                viewer.showPlayer(SwapPlugin.get(), p);
+            if (!viewer.equals(player)) {
+                viewer.showPlayer(SwapPlugin.get(), player);
             }
         }
     }
@@ -47,7 +55,7 @@ public class InactiveManager {
         if (center != null) {
             // Teleport player to the center of the cage floor
             p.teleport(center);
-            cagedPlayers.add(p);
+            cagedPlayers.add(p.getUniqueId());
             try { p.setAllowFlight(true); } catch (Exception ignored) {}
             try { p.setFlying(false); } catch (Exception ignored) {}
         }
@@ -107,6 +115,11 @@ public class InactiveManager {
         player.getInventory().setItemInOffHand(null);
         player.updateInventory();
 
+        player.setHealth(Objects.requireNonNull(player.getAttribute(Attribute.MAX_HEALTH)).getBaseValue());
+        player.setFoodLevel(20);
+
+
+
         PotionEffectType blindness = BukkitCompat.resolvePotionEffect("blindness");
         if (blindness != null)
             player.addPotionEffect(new PotionEffect(blindness, Integer.MAX_VALUE, 1, false, false));
@@ -131,7 +144,7 @@ public class InactiveManager {
         }
     }
 
-    public boolean isPlayerInactive(Player player) {
+    public boolean isPlayerInactive(UUID player) {
         return cagedPlayers.contains(player);
     }
 }

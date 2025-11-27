@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 
 import java.util.Collection;
+import java.util.List;
 
 public class PlayerState {
 
@@ -40,6 +41,7 @@ public class PlayerState {
     private final float walkSpeed;
     private final float flySpeed;
     private final int portalCooldown;
+    private final List<ItemStack> invOverflow;
 
 
     public PlayerState(ItemStack[] inventory, ItemStack[] armor, ItemStack offhand, Location location,
@@ -49,7 +51,7 @@ public class PlayerState {
                        boolean allowFlight, boolean flying, Collection<PotionEffect> activePotionEffects,
                        double absorptionAmount, Entity vehicle, boolean inVehicle, int ticksLived,
                        double lastDamage, int noDamageTicks, boolean gliding, float walkSpeed,
-                       float flySpeed, int portalCooldown) {
+                       float flySpeed, int portalCooldown, List<ItemStack> invoverflow) {
         this.inventory = inventory;
         this.armor = armor;
         this.offhand = offhand;
@@ -79,6 +81,7 @@ public class PlayerState {
         this.walkSpeed = walkSpeed;
         this.flySpeed = flySpeed;
         this.portalCooldown = portalCooldown;
+        this.invOverflow = invoverflow;
     }
 
 
@@ -196,5 +199,9 @@ public class PlayerState {
 
     public double getAbsorptionAmount() {
         return absorptionAmount;
+    }
+
+    public List<ItemStack> getInvOverflow() {
+        return invOverflow;
     }
 }

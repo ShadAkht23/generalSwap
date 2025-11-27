@@ -1,10 +1,10 @@
 package com.shard.generalswap.body;
 
-import org.bukkit.entity.Player;
+import java.util.UUID;
 
 public record SwapEvent(
-        Player playerIn,
-        Player playerOut,
+        UUID playerIn,
+        UUID playerOut,
         Body state,
         BodyController callBack
 ) {}

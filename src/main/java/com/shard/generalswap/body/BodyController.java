@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
 
 // owns body
 public final class BodyController {
@@ -24,20 +25,20 @@ public final class BodyController {
     }
 
     public void start() {
-        orchestrator.scheduleSwap(cycle.get(0).player(), null, body, this, 1);
+        orchestrator.scheduleSwap(cycle.get(0).pid(), null, body, this, 1);
     }
 
-    public Player currentHost() {
-        return cycle.get(index).player();
+    public UUID currentHost() {
+        return cycle.get(index).pid();
     }
 
 
     private void scheduleNext() {
         SwapStage stage = cycle.get(index);
-        Player playerOut;
+        UUID playerOut;
         long durationTicks;
-        playerOut = stage.player();
-        Player playerIn = cycle.get((index + 1) % cycle.size()).player();
+        playerOut = stage.pid();
+        UUID playerIn = cycle.get((index + 1) % cycle.size()).pid();
         durationTicks = stage.durationTicks();
 
         firstSwap = false;

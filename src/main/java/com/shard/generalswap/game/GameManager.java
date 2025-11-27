@@ -38,14 +38,14 @@ public class GameManager {
         return started;
     }
 
-    public boolean isSwappedOut(Player player) {
+    public boolean isSwappedOut(UUID player) {
         return inactiveManager.isPlayerInactive(player);
     }
 
     public void start() {
         // is every player online?
         started = true;
-        List<Player> players = new ArrayList<>();
+        List<UUID> players = new ArrayList<>();
 
         for (String name : config.players()) {
             Player player = Bukkit.getPlayer(name);
@@ -53,17 +53,17 @@ public class GameManager {
                 System.err.println("Player: " + name + " was not found");
                 return;
             } else {
-                players.add(player);
+                players.add(player.getUniqueId());
             }
         }
         playerInBody = new PlayerInBody(players);
 
-        Set<Player> swappedIn = new HashSet<Player>();
+        Set<UUID> swappedIn = new HashSet<>();
 
         for (Map.Entry<String, List<ConfigSwapStage>> css : config.bodies().entrySet()) {
             List<SwapStage> swapStages = new ArrayList<>();
             for (ConfigSwapStage ss : css.getValue()) {
-                swapStages.add(new SwapStage(Bukkit.getPlayer(ss.playerName()), ss.durationTicks()));
+                swapStages.add(new SwapStage(Bukkit.getPlayer(ss.playerName()).getUniqueId(), ss.durationTicks()));
             }
             BodyController controller = new BodyController(null, css.getKey(), swapStages, orchestrator);
             controller.start();
@@ -71,7 +71,7 @@ public class GameManager {
             controllers.add(controller);
         }
         players.removeAll(swappedIn);
-        for (Player inactive : players) {
+        for (UUID inactive : players) {
             inactiveManager.makeInactive(inactive);
         }
 

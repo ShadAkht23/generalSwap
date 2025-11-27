@@ -2,4 +2,6 @@ package com.shard.generalswap.body;
 
 import org.bukkit.entity.Player;
 
-public record SwapStage(Player player, long durationTicks) {}
+import java.util.UUID;
+
+public record SwapStage(UUID pid, long durationTicks) {}

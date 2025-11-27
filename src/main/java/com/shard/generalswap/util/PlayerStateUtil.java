@@ -4,11 +4,13 @@ package com.shard.generalswap.util;
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.BukkitCompat;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
 
 // Use fully-qualified reference for BukkitCompat to avoid IDE false positives
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class for capturing and applying player states
@@ -22,6 +24,10 @@ public class PlayerStateUtil {
      */
 
     public static PlayerState capturePlayerState(Player player) {
+
+        List<ItemStack> overflow = new ArrayList<>();
+        player.closeInventory();
+
         return new PlayerState(
                 player.getInventory().getContents().clone(),
                 player.getInventory().getArmorContents().clone(),
@@ -51,7 +57,8 @@ public class PlayerStateUtil {
                 player.isGliding(),
                 player.getWalkSpeed(),
                 player.getFlySpeed(),
-                player.getPortalCooldown()
+                player.getPortalCooldown(),
+                overflow
         );
     }
 
@@ -68,6 +75,7 @@ public class PlayerStateUtil {
         player.getInventory().setContents(state.getInventory());
         player.getInventory().setArmorContents(state.getArmor());
         player.getInventory().setItemInOffHand(state.getOffhand());
+
 
         // Location
         if (state.getLocation() != null) {
@@ -122,6 +130,15 @@ public class PlayerStateUtil {
             player.getInventory().clear();
             player.getInventory().setArmorContents(new ItemStack[]{});
             player.getInventory().setItemInOffHand(null);
+            player.getOpenInventory().setCursor(null);
+            Inventory top = player.getOpenInventory().getTopInventory();
+            if (top instanceof CraftingInventory) {
+                CraftingInventory craftingInv = (CraftingInventory) top;
+                ItemStack[] empty = {};
+                craftingInv.setMatrix(empty);
+                craftingInv.setResult(ItemStack.empty());
+            }
+
             player.updateInventory();
         } catch (Exception ignored) {
         }

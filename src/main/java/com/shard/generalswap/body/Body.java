@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+
 
 // state of -1 = swapped out
 // state of 0 = empty state
@@ -18,7 +20,7 @@ public class Body {
 
     private PlayerState state;
 
-    private Player currentHost;
+    private UUID currentHost;
     private Location spawn;
     public long nextSwapTick = 0;
 
@@ -43,11 +45,18 @@ public class Body {
         return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
     }
 
-    public void applyPlayerState(Player player) {
-        currentHost = player;
-        player.setRespawnLocation(spawn);
-        PlayerStateUtil.applyPlayerState(player, state);
-        System.out.println("setting respawn location: " + spawn.toString() + "for player: " + player.getName());
+
+    // will get the player then apply the state.
+    public void applyPlayerState(UUID pid) {
+        currentHost = pid;
+        Player player = Bukkit.getPlayer(pid);
+        if (player != null) {
+            player.setRespawnLocation(spawn);
+            PlayerStateUtil.applyPlayerState(player, state);
+            System.out.println("setting respawn location: " + spawn.toString() + "for player: " + player.getName());
+        } else {
+            // TODO() defer action.
+        }
     }
 
     public void setSpawn(Location loc) {

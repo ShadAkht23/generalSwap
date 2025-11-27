@@ -9,9 +9,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerSpawnChangeEvent;
-import org.bukkit.plugin.EventExecutor;
 
 public class EventListeners implements Listener {
 
@@ -24,7 +21,7 @@ public class EventListeners implements Listener {
         if (!(event.getEntity() instanceof Player victim)) return;
         // Cancel any damage to inactive runners in cages
         if (!plugin.getGameManager().gameStarted()) return;
-        if (plugin.getGameManager().isSwappedOut(victim)) {
+        if (plugin.getGameManager().isSwappedOut(victim.getUniqueId())) {
             //event.setCancelled(true);
         }
 
@@ -43,7 +40,7 @@ public class EventListeners implements Listener {
         Player p  = event.getPlayer();
         Location loc = event.getLocation();
         if (loc != null) {
-            plugin.getGameManager().playerInBody.getBody(p).setSpawn(loc);
+            plugin.getGameManager().playerInBody.getBody(p.getUniqueId()).setSpawn(loc);
             System.out.println("player reset bed");
         }
 
@@ -56,7 +53,7 @@ public class EventListeners implements Listener {
         Player player = event.getPlayer();
         // If the player is an inactive runner, prevent movement
         if (plugin.getGameManager().gameStarted() &&
-                plugin.getGameManager().isSwappedOut(player)) {
+                plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
 
             // Check if getTo() is not null to prevent NullPointerException
             if (event.getTo() != null) {
