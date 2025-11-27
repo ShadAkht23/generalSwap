@@ -42,7 +42,9 @@ public class Body {
     }
 
     public long ticksTillNextSwap() {
-        return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
+        if (nextSwapTick != -1)
+            return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
+        else return -1;
     }
 
 

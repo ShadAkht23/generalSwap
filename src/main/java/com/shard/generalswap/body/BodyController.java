@@ -36,21 +36,32 @@ public final class BodyController {
     private void scheduleNext() {
         SwapStage stage = cycle.get(index);
         UUID playerOut;
-        long durationTicks;
+        long durationTicks = 0;
         playerOut = stage.pid();
-        UUID playerIn = cycle.get((index + 1) % cycle.size()).pid();
-        durationTicks = stage.durationTicks();
+        UUID playerIn;
+        int i = 0;
+        SwapStage oldStage = stage;
+        do {
+            i++;
+            SwapStage newstage = cycle.get((index + i) % cycle.size());
+            playerIn = newstage.pid();
+            durationTicks += oldStage.durationTicks();
+            oldStage = newstage;
+        } while (playerIn == playerOut && i < cycle.size());
+        if (playerIn != playerOut) {
+            firstSwap = false;
+            index = (index + i) % cycle.size();
 
-        firstSwap = false;
-
-        body.setNextSwapTick(orchestrator.scheduleSwap(
-                playerIn,
-                playerOut,
-                body,
-                this,
-                durationTicks
-        ));
-
+            body.setNextSwapTick(orchestrator.scheduleSwap(
+                    playerIn,
+                    playerOut,
+                    body,
+                    this,
+                    durationTicks
+            ));
+        } else {
+            body.setNextSwapTick(-1);
+        }
     }
 
 
@@ -58,6 +69,6 @@ public final class BodyController {
     /** Called by the orchestrator AFTER the swap is executed. */
     public void onSwapExecuted() {
         scheduleNext();
-        index = (index + 1) % cycle.size();
+        //index = (index + 1) % cycle.size();
     }
 }

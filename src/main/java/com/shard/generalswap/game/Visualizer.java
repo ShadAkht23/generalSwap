@@ -16,7 +16,7 @@ public class Visualizer {
     public Visualizer() {
 
     }
-    
+
     public void startActionBarUpdates() {
         Bukkit.getScheduler().runTaskTimer(SwapPlugin.get(), () -> {
             if (!SwapPlugin.get().getGameManager().gameStarted()) {
@@ -32,11 +32,15 @@ public class Visualizer {
         for (Map.Entry<UUID, Body> player : SwapPlugin.get().getGameManager().playerInBody.get()) {
             if (player.getValue() != null) {
                 long timeLeft = player.getValue().ticksTillNextSwap();
-                String msg = String.format("§eSwap in: §c%ds", Math.max(0, timeLeft) / 20);
+                String msg;
+                if (timeLeft == -1) {
+                    msg = String.format("§eNo Swap");
+                } else {
+                    msg = String.format("§eSwap in: §c%ds", Math.max(0, timeLeft) / 20);
+                }
                 Player msgMe = Bukkit.getPlayer(player.getKey());
                 ActionBarUtil.sendActionBar(msgMe, msg);
                 BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
-
             } else {
                 Player msgMe = Bukkit.getPlayer(player.getKey());
                 ActionBarUtil.sendActionBar(msgMe, "");
