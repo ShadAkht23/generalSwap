@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -25,20 +26,14 @@ public class InactiveManager {
         sharedCageCenters = new java.util.HashMap<>();
         sharedCageBlocks  = new java.util.HashMap<>();
     }
-    public void makeInactive(UUID p) {
-
-        // TODO if player is null then defer action.
-        Player player = Bukkit.getPlayer(p);
-
+    public void makeInactive(@NotNull Player player) {
         applyInactiveEffects(player);
         createOrEnsureSharedCage(player.getWorld());
         teleportToSharedCage(player);
     }
 
-    public void makeActive(UUID p) {
-        cagedPlayers.remove(p);
-
-        Player player = Bukkit.getPlayer(p);
+    public void makeActive(@NotNull Player player) {
+        cagedPlayers.remove(player.getUniqueId());
 
         player.setGameMode(GameMode.SURVIVAL);
         for (Player viewer : Bukkit.getOnlinePlayers()) {
@@ -142,9 +137,5 @@ public class InactiveManager {
                 viewer.hidePlayer(SwapPlugin.get(), player);
             }
         }
-    }
-
-    public boolean isPlayerInactive(UUID player) {
-        return cagedPlayers.contains(player);
     }
 }

@@ -39,7 +39,7 @@ public class GameManager {
     }
 
     public boolean isSwappedOut(UUID player) {
-        return inactiveManager.isPlayerInactive(player);
+        return playerInBody.isSwappedOut(player);
     }
 
     public void start() {
@@ -72,7 +72,12 @@ public class GameManager {
         }
         players.removeAll(swappedIn);
         for (UUID inactive : players) {
-            inactiveManager.makeInactive(inactive);
+            Player player = Bukkit.getPlayer(inactive);
+            if (player != null) {
+                inactiveManager.makeInactive(player);
+            } else {
+                System.out.println("player disconnected mid tick....");
+            }
         }
 
         startTick = Bukkit.getCurrentTick() + 1;
@@ -80,5 +85,8 @@ public class GameManager {
         visualizer.startActionBarUpdates();
     }
 
+    public SwapOrchestrator getOrchestrator() {
+        return orchestrator;
+    }
 }
 

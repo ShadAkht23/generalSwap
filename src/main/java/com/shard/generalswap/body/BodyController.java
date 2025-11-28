@@ -69,6 +69,5 @@ public final class BodyController {
     /** Called by the orchestrator AFTER the swap is executed. */
     public void onSwapExecuted() {
         scheduleNext();
-        //index = (index + 1) % cycle.size();
     }
 }

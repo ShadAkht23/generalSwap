@@ -7,6 +7,7 @@ import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -20,7 +21,6 @@ public class Body {
 
     private PlayerState state;
 
-    private UUID currentHost;
     private Location spawn;
     public long nextSwapTick = 0;
 
@@ -49,16 +49,11 @@ public class Body {
 
 
     // will get the player then apply the state.
-    public void applyPlayerState(UUID pid) {
-        currentHost = pid;
-        Player player = Bukkit.getPlayer(pid);
-        if (player != null) {
-            player.setRespawnLocation(spawn);
-            PlayerStateUtil.applyPlayerState(player, state);
-            System.out.println("setting respawn location: " + spawn.toString() + "for player: " + player.getName());
-        } else {
-            // TODO() defer action.
-        }
+    public void applyPlayerState(@NotNull Player player) {
+        // assumes player is online
+        player.setRespawnLocation(spawn);
+        PlayerStateUtil.applyPlayerState(player, state);
+        System.out.println("setting respawn location: " + spawn.toString() + "for player: " + player.getName());
     }
 
     public void setSpawn(Location loc) {

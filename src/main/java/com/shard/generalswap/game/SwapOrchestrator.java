@@ -8,6 +8,7 @@ import com.shard.generalswap.util.PlayerStateUtil;
 import com.shard.generalswap.util.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -48,6 +49,18 @@ public class SwapOrchestrator {
         return target;
     }
 
+    public void doSwapIn(@NotNull Player player, Body body) {
+        body.applyPlayerState(player);
+        inactiveManager.makeActive(player);
+        player.sendMessage("you have been swapped into body: " + body.getName());
+        SwapPlugin.get().getGameManager().playerInBody.appliedState(player.getUniqueId());
+    }
+    public void doSwapOut(@NotNull Player player) {
+        inactiveManager.makeInactive(player);
+        player.sendMessage("you are swapped out rn");
+        SwapPlugin.get().getGameManager().playerInBody.appliedState(player.getUniqueId());
+    }
+
     private void executeSwaps(List<SwapEvent> events) {
         // TODO: perform the actual player→body swap logic
 
@@ -58,37 +71,43 @@ public class SwapOrchestrator {
         for (SwapEvent event : events) {
             // a player is being swapped out of the body
             // save that player's state into the body state
-
-
             if (event.playerOut() != null) {
                 gameManager.playerInBody.switchBody(event.playerOut(), null);
                 playersInVoid.add(event.playerOut());
                 // TODO VVVV abstract into a "read".
                 Player playOut = Bukkit.getPlayer(event.playerOut());
-                event.state().set(PlayerStateUtil.capturePlayerState(playOut));
+                if (playOut != null) {
+                    event.state().set(PlayerStateUtil.capturePlayerState(playOut));
+                }
             }
         }
 
         for (SwapEvent event : events) {
             // set player in's state to be the body its going to inhabit
+            // if player offline, do this stuff in the join event.
             playersInVoid.remove(event.playerIn());
-            event.state().applyPlayerState(event.playerIn());
-            inactiveManager.makeActive(event.playerIn());
             gameManager.playerInBody.switchBody(event.playerIn(), event.state());
 
             Player playIn = Bukkit.getPlayer(event.playerIn());
-            playIn.sendMessage("you have been swapped into body: " + event.state().getName());
+            if (playIn != null) {
+                doSwapIn(playIn, event.state());
+            } else {
+                gameManager.playerInBody.applyStateLater(event.playerIn());
+            }
         }
         // players in void contains players who are swapped out but not swapped in.
 
 
 
         for (UUID pid : playersInVoid) {
-            inactiveManager.makeInactive(pid);
             Player player = Bukkit.getPlayer(pid);
-            player.sendMessage("you are swapped out rn");
+            if (player != null) {
+                doSwapOut(player);
+            } else {
+                // make them inactive later.
+                gameManager.playerInBody.applyStateLater(pid);
+            }
         }
-        //playerRegistry.print();
 
         // callback:
         for (SwapEvent event : events) {

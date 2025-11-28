@@ -34,7 +34,7 @@ public class Visualizer {
                 long timeLeft = player.getValue().ticksTillNextSwap();
                 String msg;
                 if (timeLeft == -1) {
-                    msg = String.format("§eNo Swap");
+                    msg = "§eNo Swap";
                 } else {
                     msg = String.format("§eSwap in: §c%ds", Math.max(0, timeLeft) / 20);
                 }

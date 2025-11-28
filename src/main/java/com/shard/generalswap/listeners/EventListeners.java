@@ -2,13 +2,23 @@ package com.shard.generalswap.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerSetSpawnEvent;
 import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.body.Body;
+import com.shard.generalswap.game.SwapOrchestrator;
+import com.shard.generalswap.state.PlayerInBody;
+import com.shard.generalswap.state.PlayerState;
+import com.shard.generalswap.util.PlayerStateUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.UUID;
 
 public class EventListeners implements Listener {
 
@@ -27,6 +37,8 @@ public class EventListeners implements Listener {
 
     }
 
+
+    // handle spawn point tied to body not player
     @EventHandler
     public void onPlayerSpawnPointChange(PlayerSetSpawnEvent event) {
         if (!plugin.getGameManager().gameStarted())
@@ -69,5 +81,49 @@ public class EventListeners implements Listener {
     }
 
 
+
+    // save state when disconnect
+    @EventHandler
+    public void onPlayerDisconnect(PlayerQuitEvent event) {
+        if (!SwapPlugin.get().getGameManager().gameStarted())
+            return;
+        PlayerInBody playerInBody = plugin.getGameManager().playerInBody;
+        PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
+        Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
+        if (body != null) {
+            body.set(playerState);
+        }
+    }
+
+    // if joined after swap and they are swapped in,
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!SwapPlugin.get().getGameManager().gameStarted())
+            return;
+
+        Bukkit.getScheduler().runTaskLater(SwapPlugin.get(), () -> {
+            UUID pid = event.getPlayer().getUniqueId();
+            PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
+            if (!playerInBody.isStateApplied(pid)) {
+                System.out.println("Later: doing something");
+
+                Body body = playerInBody.getBody(pid);
+                Player player = event.getPlayer();
+                SwapOrchestrator orchestrator = SwapPlugin.get().getGameManager().getOrchestrator();
+
+                if (body == null) {
+                    // swap them out
+                    System.out.println("Later: Swapping out");
+                    orchestrator.doSwapOut(player);
+                } else {
+                    // swap them in
+                    System.out.println("Later: Swapping in");
+
+                    orchestrator.doSwapIn(player, body);
+                }
+            }
+        }, 10
+        );
+    }
 
 }
