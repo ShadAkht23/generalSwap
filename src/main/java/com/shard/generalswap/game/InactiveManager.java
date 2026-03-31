@@ -36,9 +36,21 @@ public class InactiveManager {
         cagedPlayers.remove(player.getUniqueId());
 
         player.setGameMode(GameMode.SURVIVAL);
+        makeVisible(player);
+    }
+
+    public void makeVisible(@NotNull Player player) {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             if (!viewer.equals(player)) {
                 viewer.showPlayer(SwapPlugin.get(), player);
+            }
+        }
+    }
+
+    public void makeInvisible(@NotNull Player player) {
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (!viewer.equals(player)) {
+                viewer.hidePlayer(SwapPlugin.get(), player);
             }
         }
     }
@@ -132,10 +144,7 @@ public class InactiveManager {
         } catch (Exception ignored) {
         }
 
-        for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (!viewer.equals(player)) {
-                viewer.hidePlayer(SwapPlugin.get(), player);
-            }
-        }
+        makeInvisible(player);
+
     }
 }

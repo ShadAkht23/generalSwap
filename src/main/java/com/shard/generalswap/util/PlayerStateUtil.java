@@ -3,6 +3,7 @@ package com.shard.generalswap.util;
 
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.BukkitCompat;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 
@@ -27,6 +28,10 @@ public class PlayerStateUtil {
 
         List<ItemStack> overflow = new ArrayList<>();
         player.closeInventory();
+        Entity vehicle = player.getVehicle();
+        if (vehicle != null) {
+            vehicle.removePassenger(player);
+        }
 
         return new PlayerState(
                 player.getInventory().getContents().clone(),
@@ -49,7 +54,7 @@ public class PlayerStateUtil {
                 player.isFlying(),
                 new ArrayList<>(player.getActivePotionEffects()),
                 player.getAbsorptionAmount(),
-                player.getVehicle(),
+                vehicle,
                 player.isInsideVehicle(),
                 player.getTicksLived(),
                 player.getLastDamage(),
@@ -123,6 +128,17 @@ public class PlayerStateUtil {
         try { player.setWalkSpeed(state.getWalkSpeed()); } catch (Throwable ignored) {}
         try { player.setFlySpeed(state.getFlySpeed()); } catch (Throwable ignored) {}
         try { player.setPortalCooldown(state.getPortalCooldown()); } catch (Throwable ignored) {}
+        try {
+            Entity vehicle = state.getVehicle();
+            if (vehicle != null) {
+                System.out.println("this should be empty.. or atleast not contain the guy being swapped out");
+                for (Entity passenger : vehicle.getPassengers()) {
+                    System.out.println(passenger);
+                }
+
+                vehicle.addPassenger(player);
+            }
+        } catch (Throwable ignored) {}
     }
 
     public static void clear(Player player) {

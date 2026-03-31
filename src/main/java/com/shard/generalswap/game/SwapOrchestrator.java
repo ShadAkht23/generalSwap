@@ -38,7 +38,7 @@ public class SwapOrchestrator {
 
         List<SwapEvent> events = queue.remove(currentTick);
         if (events == null) return;
-        System.out.println("executing swaps at tick " + currentTick + ":");
+        //System.out.println("executing swaps at tick " + currentTick + ":");
         executeSwaps(events);
     }
 
@@ -62,7 +62,7 @@ public class SwapOrchestrator {
     }
 
     private void executeSwaps(List<SwapEvent> events) {
-        // TODO: perform the actual player→body swap logic
+        // perform the actual player→body swap logic
 
         GameManager gameManager = SwapPlugin.get().getGameManager();
 
@@ -74,10 +74,10 @@ public class SwapOrchestrator {
             if (event.playerOut() != null) {
                 gameManager.playerInBody.switchBody(event.playerOut(), null);
                 playersInVoid.add(event.playerOut());
-                // TODO VVVV abstract into a "read".
                 Player playOut = Bukkit.getPlayer(event.playerOut());
                 if (playOut != null) {
                     event.state().set(PlayerStateUtil.capturePlayerState(playOut));
+                    inactiveManager.makeInvisible(playOut);
                 }
             }
         }
@@ -95,10 +95,19 @@ public class SwapOrchestrator {
                 gameManager.playerInBody.applyStateLater(event.playerIn());
             }
         }
+
+        // we make swapping out players invisible then visible in the same tick to force a refresh.
+        // fixes desync issues when using boats
+        for (SwapEvent event: events) {
+            if (event.playerOut() != null) {
+                Player playOut = Bukkit.getPlayer(event.playerOut());
+                if (playOut != null) {
+                    inactiveManager.makeVisible(playOut);
+                }
+            }
+        }
+
         // players in void contains players who are swapped out but not swapped in.
-
-
-
         for (UUID pid : playersInVoid) {
             Player player = Bukkit.getPlayer(pid);
             if (player != null) {
@@ -109,7 +118,7 @@ public class SwapOrchestrator {
             }
         }
 
-        // callback:
+        // callback: for scheduling next swap
         for (SwapEvent event : events) {
             event.callBack().onSwapExecuted();
         }
