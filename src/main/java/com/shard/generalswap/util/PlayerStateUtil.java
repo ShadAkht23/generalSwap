@@ -3,6 +3,7 @@ package com.shard.generalswap.util;
 
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.BukkitCompat;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
@@ -63,7 +64,8 @@ public class PlayerStateUtil {
                 player.getWalkSpeed(),
                 player.getFlySpeed(),
                 player.getPortalCooldown(),
-                overflow
+                overflow,
+                player.getEnderPearls()
         );
     }
 
@@ -111,6 +113,10 @@ public class PlayerStateUtil {
         player.setFallDistance(state.getFallDistance());
         try { player.setAllowFlight(state.isAllowFlight()); } catch (Throwable ignored) {}
         try { player.setFlying(state.isFlying()); } catch (Throwable ignored) {}
+
+        for (EnderPearl pearl : state.getAirbornePearls()) {
+            pearl.setShooter(player);
+        }
 
         // Effects
         try {

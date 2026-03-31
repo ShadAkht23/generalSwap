@@ -2,6 +2,7 @@ package com.shard.generalswap.state;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.Player;
@@ -15,7 +16,7 @@ public class PlayerState {
     private final ItemStack[] inventory;
     private final ItemStack[] armor;
     private final ItemStack offhand;
-    private final Location location;
+    private Location location;
     private final double health;
     private final int foodLevel;
     private final float saturation;
@@ -32,7 +33,7 @@ public class PlayerState {
     private final boolean flying;
     private final Collection<PotionEffect> activePotionEffects;
     private final double absorptionAmount;
-    private final Entity vehicle;
+    private Entity vehicle;
     private final boolean inVehicle;
     private final int ticksLived;
     private final double lastDamage;
@@ -42,6 +43,7 @@ public class PlayerState {
     private final float flySpeed;
     private final int portalCooldown;
     private final List<ItemStack> invOverflow;
+    private Collection<EnderPearl> airbornePearls;
 
 
     public PlayerState(ItemStack[] inventory, ItemStack[] armor, ItemStack offhand, Location location,
@@ -51,7 +53,7 @@ public class PlayerState {
                        boolean allowFlight, boolean flying, Collection<PotionEffect> activePotionEffects,
                        double absorptionAmount, Entity vehicle, boolean inVehicle, int ticksLived,
                        double lastDamage, int noDamageTicks, boolean gliding, float walkSpeed,
-                       float flySpeed, int portalCooldown, List<ItemStack> invoverflow) {
+                       float flySpeed, int portalCooldown, List<ItemStack> invoverflow, Collection<EnderPearl> airbornePearls) {
         this.inventory = inventory;
         this.armor = armor;
         this.offhand = offhand;
@@ -82,6 +84,7 @@ public class PlayerState {
         this.flySpeed = flySpeed;
         this.portalCooldown = portalCooldown;
         this.invOverflow = invoverflow;
+        this.airbornePearls = airbornePearls;
     }
 
 
@@ -203,5 +206,14 @@ public class PlayerState {
 
     public List<ItemStack> getInvOverflow() {
         return invOverflow;
+    }
+
+    public Collection<EnderPearl> getAirbornePearls() {return airbornePearls; }
+
+
+
+    public void setPearlLandLoc(Location loc) {
+        location = loc;
+        vehicle = null;
     }
 }

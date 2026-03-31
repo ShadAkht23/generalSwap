@@ -7,6 +7,7 @@ import com.shard.generalswap.body.SwapEvent;
 import com.shard.generalswap.util.PlayerStateUtil;
 import com.shard.generalswap.util.Scheduler;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,6 +98,16 @@ public class SwapOrchestrator {
             if (playIn != null) {
                 doSwapIn(playIn, event.state());
             } else {
+                // if playOut has any airborne enderpearls, we need to track them now!
+                // pearl Tracker: Pearl -> new owner?
+                Player playOut = Bukkit.getPlayer(event.playerOut());
+                if (playOut != null) {
+                    for (EnderPearl enderPearl : playOut.getEnderPearls()) {
+                        //enderPearl.setShooter(null);
+                        gameManager.playerInBody.addPendingPearlSwap(enderPearl, event.playerIn());
+                        System.out.println("adding pending enderpearl swap");
+                    }
+                }
                 gameManager.playerInBody.applyStateLater(event.playerIn());
             }
         }

@@ -61,6 +61,9 @@ public class Body {
         System.out.println("setting spawn: " + loc.toString() + " for body: " + name);
     }
 
+    public void setPearlLand(Location loc) {
+        state.setPearlLandLoc(loc);
+    }
 
     public void set(PlayerState s) {
         state = s;

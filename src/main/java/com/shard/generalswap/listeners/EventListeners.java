@@ -9,14 +9,21 @@ import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.EnderPearl;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.UUID;
 
@@ -94,6 +101,57 @@ public class EventListeners implements Listener {
             body.set(playerState);
         }
     }
+
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+            Player player = event.getPlayer();
+            if (player.hasMetadata("cancel_next_pearl")) {
+                event.setCancelled(true);
+                player.removeMetadata("cancel_next_pearl", plugin);
+            }
+
+        }
+    }
+
+    @EventHandler
+    public void OnProjectileHit(ProjectileHitEvent event) {
+        if (!SwapPlugin.get().getGameManager().gameStarted())
+            return;
+        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
+        if (event.getEntity() instanceof EnderPearl) {
+            EnderPearl pearl = (EnderPearl) event.getEntity();
+            UUID uuid = playerInBody.getPendingEnderPearlSwap(pearl);
+            if (uuid != null) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player != null) {
+                    // they joined back. set them to be shooter and let the event do its thing
+                    pearl.setShooter(player);
+                    playerInBody.pearlNotPending(pearl);
+                } else {
+                    // still offline.
+                    // get location of pearl landing:
+                    Location loc = null;
+                    Block block = event.getHitBlock();
+                    if (block != null) {
+                        loc = block.getLocation();
+                    }
+
+                    Entity entity = event.getHitEntity();
+                    if (entity != null) {
+                        loc = entity.getLocation();
+                    }
+                    if (loc == null) {
+                        System.err.println("Couldn't resolve pearl landing position");
+                    }
+                    playerInBody.getBody(uuid).setPearlLand(loc);
+                    ((Player)pearl.getShooter()).setMetadata("cancel_next_pearl", new FixedMetadataValue(plugin, true));
+                    System.out.println("cancelling projectilie event");
+                }
+            }
+        }
+    }
+
 
     // if joined after swap and they are swapped in,
     @EventHandler
