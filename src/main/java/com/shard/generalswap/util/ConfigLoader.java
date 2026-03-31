@@ -56,11 +56,11 @@ public final class ConfigLoader {
 
                 String[] kv = trimmed.split(":");
                 String player = kv[0].trim();
-                long ticks = Long.parseLong(kv[1].trim());
+                long seconds = Long.parseLong(kv[1].trim());
 
 
                 players.add(player);
-                list.add(new ConfigSwapStage(player, ticks));
+                list.add(new ConfigSwapStage(player, seconds * 20));
             }
         }
 
