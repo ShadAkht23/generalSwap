@@ -6,6 +6,7 @@ import com.shard.generalswap.util.ActionBarUtil;
 import com.shard.generalswap.util.BukkitCompat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
 import java.util.Set;
@@ -13,17 +14,29 @@ import java.util.UUID;
 
 public class Visualizer {
 
+    private BukkitTask actionBarTask;
+
     public Visualizer() {
 
     }
 
     public void startActionBarUpdates() {
-        Bukkit.getScheduler().runTaskTimer(SwapPlugin.get(), () -> {
+        actionBarTask = Bukkit.getScheduler().runTaskTimer(SwapPlugin.get(), () -> {
             if (!SwapPlugin.get().getGameManager().gameStarted()) {
                 return;
             }
             updateActionBar();
         }, 3L, 20);
+    }
+
+    public void stopActionBarUpdates() {
+        actionBarTask.cancel();
+        for (UUID uuid: SwapPlugin.get().getGameManager().getInactiveManager().getCagedPlayers()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                BukkitCompat.showTitle(player, "", "", 0, Integer.MAX_VALUE, 0);
+            }
+        }
     }
 
     private void updateActionBar() {

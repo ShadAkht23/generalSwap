@@ -40,6 +40,7 @@ public class SwapPlugin extends JavaPlugin {
     public void start() {
         gameManager.start();
     }
+    public void stop() {gameManager.stop();}
 
     @Override
     public void onEnable() {

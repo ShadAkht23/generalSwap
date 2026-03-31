@@ -26,6 +26,11 @@ public class PlayerInBody {
         }
     }
 
+    public void clear() {
+        playerToBody.clear();
+        stateApplied.clear();
+    }
+
     public void appliedState(UUID player) {stateApplied.put(player, true); }
 
     public void applyStateLater(UUID player) {stateApplied.put(player, false); }

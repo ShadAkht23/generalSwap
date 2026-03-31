@@ -29,6 +29,11 @@ public class SwapOrchestrator {
         this.inactiveManager = inactiveManager;
     }
 
+    public void reset() {
+        currentTick = 0;
+        queue.clear();
+    }
+
     public long timeSinceBegan() {
         return currentTick;
     }

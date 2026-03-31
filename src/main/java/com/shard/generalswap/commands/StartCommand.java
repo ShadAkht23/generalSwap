@@ -29,7 +29,10 @@ public class StartCommand implements CommandExecutor, TabCompleter {
             String subCommand = args[0].toLowerCase();
             if (subCommand.equals("start")) {
                 plugin.start();
-            } else {
+            } else if (subCommand.equals("stop")) {
+                plugin.stop();
+            }
+            else {
                 commandSender.sendMessage("its litearlly just /gswap start");
                 return false;
             }

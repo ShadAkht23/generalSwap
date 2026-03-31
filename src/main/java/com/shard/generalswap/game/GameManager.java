@@ -10,6 +10,7 @@ import com.shard.generalswap.util.Configuration;
 import jdk.management.jfr.ConfigurationInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -21,6 +22,8 @@ public class GameManager {
     private final Configuration config;
     private final InactiveManager inactiveManager;
     private final Visualizer visualizer;
+    private BukkitTask curTickTask;
+
     public PlayerInBody playerInBody;
     public long startTick = 0;
     boolean started = false;
@@ -81,12 +84,30 @@ public class GameManager {
         }
 
         startTick = Bukkit.getCurrentTick() + 1;
-        Bukkit.getScheduler().runTaskTimer(plugin, orchestrator::tick, 1L, 1L);
+        curTickTask = Bukkit.getScheduler().runTaskTimer(plugin, orchestrator::tick, 1L, 1L);
         visualizer.startActionBarUpdates();
+    }
+
+    public void stop() {
+        if (!started) {
+            System.err.println("Cannot stop game that hasn't started");
+            return;
+        }
+        started = false;
+
+        playerInBody.clear();
+        curTickTask.cancel();
+        visualizer.stopActionBarUpdates();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            inactiveManager.makeActive(player);
+        }
+        inactiveManager.cleanupAllCages();
+        getOrchestrator().reset();
     }
 
     public SwapOrchestrator getOrchestrator() {
         return orchestrator;
     }
+    public InactiveManager getInactiveManager() {return inactiveManager;}
 }
 

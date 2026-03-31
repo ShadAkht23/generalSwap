@@ -131,11 +131,6 @@ public class PlayerStateUtil {
         try {
             Entity vehicle = state.getVehicle();
             if (vehicle != null) {
-                System.out.println("this should be empty.. or atleast not contain the guy being swapped out");
-                for (Entity passenger : vehicle.getPassengers()) {
-                    System.out.println(passenger);
-                }
-
                 vehicle.addPassenger(player);
             }
         } catch (Throwable ignored) {}

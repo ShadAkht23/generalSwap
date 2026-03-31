@@ -32,6 +32,10 @@ public class InactiveManager {
         teleportToSharedCage(player);
     }
 
+    public Set<UUID> getCagedPlayers() {
+        return cagedPlayers;
+    }
+
     public void makeActive(@NotNull Player player) {
         cagedPlayers.remove(player.getUniqueId());
 
@@ -61,7 +65,9 @@ public class InactiveManager {
         org.bukkit.Location center = sharedCageCenters.get(p.getWorld());
         if (center != null) {
             // Teleport player to the center of the cage floor
+
             p.teleport(center);
+            //p.teleport(new Location(p.getWorld(), 0, -70, 0));
             cagedPlayers.add(p.getUniqueId());
             try { p.setAllowFlight(true); } catch (Exception ignored) {}
             try { p.setFlying(false); } catch (Exception ignored) {}
@@ -71,6 +77,7 @@ public class InactiveManager {
     private void createOrEnsureSharedCage(World world) {
         if (world == null) world = Bukkit.getWorlds().get(0);
         int y = world.getMaxHeight() - 10;
+
         int cx = 0;
         int cz = 0;
         Location center = new Location(world, cx + 0.5, y, cz + 0.5);
@@ -106,7 +113,7 @@ public class InactiveManager {
         sharedCageCenters.put(world, center.clone());
     }
 
-    private void cleanupAllCages() {
+    public void cleanupAllCages() {
         for (Map.Entry<org.bukkit.World, List<BlockState>> e : sharedCageBlocks.entrySet()) {
             List<BlockState> list = e.getValue();
             if (list != null) for (BlockState s : list) { try { s.update(true, false); } catch (Exception ignored) {} }
