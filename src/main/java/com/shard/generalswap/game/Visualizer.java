@@ -2,6 +2,7 @@ package com.shard.generalswap.game;
 
 import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.Body;
+import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.ActionBarUtil;
 import com.shard.generalswap.util.BukkitCompat;
 import org.bukkit.Bukkit;
@@ -41,8 +42,8 @@ public class Visualizer {
 
     private void updateActionBar() {
         if (!SwapPlugin.get().getGameManager().gameStarted()) return;
-
-        for (Map.Entry<UUID, Body> player : SwapPlugin.get().getGameManager().playerInBody.get()) {
+        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
+        for (Map.Entry<UUID, Body> player : playerInBody.get()) {
             if (player.getValue() != null) {
                 long timeLeft = player.getValue().ticksTillNextSwap();
                 String msg;
@@ -56,7 +57,10 @@ public class Visualizer {
                 BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
             } else {
                 Player msgMe = Bukkit.getPlayer(player.getKey());
-                ActionBarUtil.sendActionBar(msgMe, "");
+                // return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
+                Long time =  (playerInBody.getNextSwapIn(player.getKey()) - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick) ) / 20;
+                String msg = String.format("§eSwap in: §c%ds", time);
+                ActionBarUtil.sendActionBar(msgMe, msg);
 
                 String t = "§6§lYou Are Swapped Out!";
                 BukkitCompat.showTitle(msgMe, t, "", 0, Integer.MAX_VALUE, 0);

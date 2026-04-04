@@ -4,6 +4,7 @@ import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.BodyController;
 import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.SwapEvent;
+import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.PlayerStateUtil;
 import com.shard.generalswap.util.Scheduler;
 import org.bukkit.Bukkit;
@@ -59,11 +60,14 @@ public class SwapOrchestrator {
         body.applyPlayerState(player);
         inactiveManager.makeActive(player);
         player.sendMessage("you have been swapped into body: " + body.getName());
-        SwapPlugin.get().getGameManager().playerInBody.appliedState(player.getUniqueId());
+        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
+        playerInBody.emptyPendingChatMsgs(player.getUniqueId());
+        playerInBody.appliedState(player.getUniqueId());
+
     }
     public void doSwapOut(@NotNull Player player) {
         inactiveManager.makeInactive(player);
-        player.sendMessage("you are swapped out rn");
+        // player.sendMessage("you are swapped out rn");
         SwapPlugin.get().getGameManager().playerInBody.appliedState(player.getUniqueId());
     }
 
@@ -75,7 +79,9 @@ public class SwapOrchestrator {
         // event.playerOut() may be null for first swap.
         Set<UUID> playersInVoid = new HashSet<>();
         for (SwapEvent event : events) {
+            System.out.println("Player " + event.playerIn() + "  being swapped into " + event.state().getName() +  " displacing " + event.playerOut());
             // a player is being swapped out of the body
+
             // save that player's state into the body state
             if (event.playerOut() != null) {
                 gameManager.playerInBody.switchBody(event.playerOut(), null);
@@ -134,6 +140,26 @@ public class SwapOrchestrator {
             }
         }
 
+        // UPDATING SWAPPED OUT TIMER
+        List<Map<UUID, Long>> tickMaps = new ArrayList<>();
+        for (SwapEvent event : events) {
+            Map<UUID, Long> tickMap = event.callBack().nextSwapTicks();
+            tickMaps.add(tickMap);
+        }
+
+        Map<UUID, Long> union = new HashMap<>();
+        for (Map<UUID, Long> tickMap : tickMaps) {
+            for (Map.Entry<UUID, Long> entry : tickMap.entrySet()) {
+                if (union.containsKey(entry.getKey())) {
+                    union.put(entry.getKey(), Math.min(union.get(entry.getKey()), entry.getValue()));
+                } else {
+                    union.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        for (Map.Entry<UUID, Long> entry : union.entrySet()) {
+            gameManager.playerInBody.updateNextSwapIn(entry.getKey(), entry.getValue());
+        }
         // callback: for scheduling next swap
         for (SwapEvent event : events) {
             event.callBack().onSwapExecuted();

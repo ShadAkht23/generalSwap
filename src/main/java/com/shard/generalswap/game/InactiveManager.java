@@ -1,6 +1,7 @@
 package com.shard.generalswap.game;
 
 import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.BukkitCompat;
 import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.*;
@@ -41,6 +42,7 @@ public class InactiveManager {
 
         player.setGameMode(GameMode.SURVIVAL);
         makeVisible(player);
+
     }
 
     public void makeVisible(@NotNull Player player) {

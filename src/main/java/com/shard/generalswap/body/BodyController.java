@@ -1,11 +1,14 @@
 package com.shard.generalswap.body;
 
+import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerState;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 // owns body
@@ -32,6 +35,31 @@ public final class BodyController {
         return cycle.get(index).pid();
     }
 
+    public Map<UUID, Long> nextSwapTicks() {
+        // returns the tick each person will be next swapped in at.
+        int i = 0;
+        SwapStage stage = cycle.get(index);
+        long durationTicks = 0;
+        long oldDurationTicks = 0;
+        Map<UUID, Long> tickMap = new HashMap<>();
+        do {
+            i++;
+            UUID playerIn = stage.pid();
+            durationTicks += stage.durationTicks();
+            if (!tickMap.containsKey(stage.pid())) {
+                tickMap.put(playerIn, oldDurationTicks + body.nextSwapTick);
+            }
+            oldDurationTicks = durationTicks;
+            stage = cycle.get((index + i) % cycle.size());
+        } while (i < cycle.size());
+
+        System.out.println("next swap is at " + body.nextSwapTick + " currentStage ="  + index);
+        for (Map.Entry<UUID, Long> entry : tickMap.entrySet()) {
+
+            System.out.println("Player " + Bukkit.getPlayer(entry.getKey()).getName() + "'s next swap is at " + entry.getValue());
+        }
+        return tickMap;
+    }
 
     private void scheduleNext() {
         SwapStage stage = cycle.get(index);

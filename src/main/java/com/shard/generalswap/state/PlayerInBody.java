@@ -1,6 +1,8 @@
 package com.shard.generalswap.state;
 
 import com.shard.generalswap.body.Body;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 
@@ -14,11 +16,15 @@ public class PlayerInBody {
     private final Map<UUID, Body> playerToBody;
     private final Map<UUID, Boolean> stateApplied;
     private final Map<EnderPearl, UUID> pendingPearlSwap;
+    private final Map<UUID, List<Component>> pendingChatMsgs;
+    private final Map<UUID, Long> nextSwapIn;
 
     public PlayerInBody(List<UUID> allPlayers) {
         playerToBody = new HashMap<>();
         stateApplied = new HashMap<>();
         pendingPearlSwap = new HashMap<>();
+        pendingChatMsgs = new HashMap<>();
+        nextSwapIn = new HashMap<>();
         for (UUID player : allPlayers) {
             if (player == null) {
                 System.out.println("WHTF??");
@@ -32,6 +38,36 @@ public class PlayerInBody {
     public void clear() {
         playerToBody.clear();
         stateApplied.clear();
+    }
+
+    public void updateNextSwapIn(UUID player, Long delay) {
+        nextSwapIn.put(player, delay);
+    }
+    public Long getNextSwapIn(UUID player) {
+        return nextSwapIn.get(player);
+    }
+
+    public void appendPendingChatMsg(UUID player, Component msg) {
+        if (pendingChatMsgs.containsKey(player)) {
+            pendingChatMsgs.get(player).add(msg);
+        } else {
+            List<Component> list = new ArrayList<>();
+            list.add(msg);
+            pendingChatMsgs.put(player, list);
+        }
+    }
+
+    public void emptyPendingChatMsgs(UUID uuid) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            if (pendingChatMsgs.containsKey(uuid)) {
+                List<Component> msgs = pendingChatMsgs.get(uuid);
+                for (Component msg : msgs) {
+                    player.sendMessage(msg);
+                }
+                msgs.clear();
+            }
+        }
     }
 
     public void addPendingPearlSwap(EnderPearl enderPearl, UUID player) {

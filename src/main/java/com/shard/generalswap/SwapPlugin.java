@@ -8,6 +8,12 @@ import com.shard.generalswap.listeners.EventListeners;
 import com.shard.generalswap.util.ConfigLoader;
 import com.shard.generalswap.util.ConfigSwapStage;
 import com.shard.generalswap.util.Configuration;
+import de.maxhenkel.voicechat.api.BukkitVoicechatService;
+import de.maxhenkel.voicechat.api.VoicechatApi;
+import de.maxhenkel.voicechat.api.VoicechatServerApi;
+import de.maxhenkel.voicechat.api.packets.MicrophonePacket;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -16,19 +22,22 @@ import java.util.Map;
 
 /*
 TODO
-    title/messages for swapping + swapping out
-    handle server stop
-    handle player join + leave
-    handle portal thing
+    immediate start so other runner doesn't know the spawn
+    Hiding Chat
+    Timer for Swapped out players _/
+    manhunt compass
+    does ender chest work? respawn anchor? pet owning?
+    cage without visible bedrock?
     handle end portal thing
     update hostile mob targetting
-
+    fix endermen mob targetting
 
 
 
 
 
  */
+import de.maxhenkel.voicechat.api.VoicechatPlugin;
 
 
 public class SwapPlugin extends JavaPlugin {
@@ -36,6 +45,10 @@ public class SwapPlugin extends JavaPlugin {
     private static SwapPlugin instance;
 
     private GameManager gameManager;
+
+    private Plugin manhuntPlus;
+
+    private VoicechatApi voicechatServerApi;
 
     public void start() {
         gameManager.start();
@@ -45,7 +58,20 @@ public class SwapPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        if (Bukkit.getPluginManager().getPlugin("ManhuntPlus") != null) {
+            manhuntPlus = Bukkit.getPluginManager().getPlugin("ManhuntPlus");
+            getLogger().info("Successfully hooked into Manhunt+!");
+        }
+
+        BukkitVoicechatService service = getServer().getServicesManager().load(BukkitVoicechatService.class);
+        if (service != null) {
+            service.registerPlugin(new VoiceChatPlugin(this));
+            System.out.println("Successfully registered voice chat plugin");
+        }
+
         getLogger().info("Swap plugin enabled.");
+
+
 
         // Load config
         Map<String, List<ConfigSwapStage>> bodies;
@@ -81,6 +107,11 @@ public class SwapPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EventListeners(), this);
         gameManager = new GameManager(this, orchestrator, config, inactiveManager);
     }
+
+    public void setVoicechatServerApi(VoicechatApi vcplugin) {
+        voicechatServerApi = vcplugin;
+    }
+
 
     public static SwapPlugin get() { return instance; }
     public GameManager getGameManager() {return gameManager; }

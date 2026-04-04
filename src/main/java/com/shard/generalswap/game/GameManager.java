@@ -37,6 +37,8 @@ public class GameManager {
         visualizer = new Visualizer();
     }
 
+
+
     public boolean gameStarted() {
         return started;
     }

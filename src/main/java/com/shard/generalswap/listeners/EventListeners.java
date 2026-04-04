@@ -7,6 +7,10 @@ import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.PlayerStateUtil;
+import io.papermc.paper.event.player.AbstractChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -19,10 +23,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.UUID;
@@ -153,6 +154,7 @@ public class EventListeners implements Listener {
     }
 
 
+
     // if joined after swap and they are swapped in,
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -182,6 +184,28 @@ public class EventListeners implements Listener {
             }
         }, 10
         );
+    }
+
+
+    @EventHandler
+    public void onAdvancement(PlayerAdvancementDoneEvent event) {
+        Component msg = event.message();
+        Component empty = Component.empty();
+        //Component notEmpty = Component.empty().content("received advancement");
+        event.message(empty);
+        if (msg == null)
+            return;
+        if (plugin.getGameManager().gameStarted()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
+                    // only add if they are about to get swapped into the player who owns this body??
+                    plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
+                } else {
+
+                    player.sendMessage(msg);
+                }
+            }
+        }
     }
 
 }
