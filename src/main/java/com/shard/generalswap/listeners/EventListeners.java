@@ -60,8 +60,9 @@ public class EventListeners implements Listener {
         Player p  = event.getPlayer();
         Location loc = event.getLocation();
         if (loc != null) {
-            plugin.getGameManager().playerInBody.getBody(p.getUniqueId()).setSpawn(loc);
-            System.out.println("player reset bed");
+            Body body = plugin.getGameManager().playerInBody.getBody(p.getUniqueId());
+            body.setSpawn(loc);
+            System.out.println("player reset spawn location");
         }
 
     }
@@ -73,6 +74,7 @@ public class EventListeners implements Listener {
         Player player = event.getPlayer();
         // If the player is an inactive runner, prevent movement
         if (plugin.getGameManager().gameStarted() &&
+                plugin.getGameManager().isPlaying(player.getUniqueId()) &&
                 plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
 
             // Check if getTo() is not null to prevent NullPointerException
@@ -98,7 +100,7 @@ public class EventListeners implements Listener {
         PlayerInBody playerInBody = plugin.getGameManager().playerInBody;
         PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
         Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
-        if (body != null) {
+        if (body != null && !body.getName().equals("SWAPPED OUT")) {
             body.set(playerState);
         }
     }
@@ -145,7 +147,8 @@ public class EventListeners implements Listener {
                     if (loc == null) {
                         System.err.println("Couldn't resolve pearl landing position");
                     }
-                    playerInBody.getBody(uuid).setPearlLand(loc);
+                    Body body = playerInBody.getBody(uuid);
+                    body.setPearlLand(loc);
                     ((Player)pearl.getShooter()).setMetadata("cancel_next_pearl", new FixedMetadataValue(plugin, true));
                     System.out.println("cancelling projectilie event");
                 }
@@ -165,20 +168,18 @@ public class EventListeners implements Listener {
             UUID pid = event.getPlayer().getUniqueId();
             PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
             if (!playerInBody.isStateApplied(pid)) {
-                System.out.println("Later: doing something");
 
                 Body body = playerInBody.getBody(pid);
                 Player player = event.getPlayer();
                 SwapOrchestrator orchestrator = SwapPlugin.get().getGameManager().getOrchestrator();
-
                 if (body == null) {
+                    return;
+                }
+                if (body.getName().equals("SWAPPED OUT")) {
                     // swap them out
-                    System.out.println("Later: Swapping out");
                     orchestrator.doSwapOut(player);
                 } else {
                     // swap them in
-                    System.out.println("Later: Swapping in");
-
                     orchestrator.doSwapIn(player, body);
                 }
             }
@@ -201,7 +202,6 @@ public class EventListeners implements Listener {
                     // only add if they are about to get swapped into the player who owns this body??
                     plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
                 } else {
-
                     player.sendMessage(msg);
                 }
             }

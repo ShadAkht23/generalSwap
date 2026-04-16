@@ -19,6 +19,8 @@ public class PlayerInBody {
     private final Map<UUID, List<Component>> pendingChatMsgs;
     private final Map<UUID, Long> nextSwapIn;
 
+    private final Body swappedOutBody = Body.SwappedOutBody();
+
     public PlayerInBody(List<UUID> allPlayers) {
         playerToBody = new HashMap<>();
         stateApplied = new HashMap<>();
@@ -30,7 +32,7 @@ public class PlayerInBody {
                 System.out.println("WHTF??");
 
             }
-            playerToBody.put(player, null); // null meaning they are swapped out rn
+            swapOut(player);
             stateApplied.put(player, true);
         }
     }
@@ -96,12 +98,17 @@ public class PlayerInBody {
         playerToBody.put(player, body);
     }
 
+    public void swapOut(UUID player) {
+        playerToBody.put(player, swappedOutBody);
+    }
+
+
     public boolean isSwappedOut(UUID player) {
-        return playerToBody.get(player) == null;
+        return playerToBody.get(player).getName().equals("SWAPPED OUT");
     }
 
     public boolean isSwappedIn(UUID player) {
-        return playerToBody.get(player) != null;
+        return !isSwappedOut(player);
     }
 
     public Body getBody(UUID player) {

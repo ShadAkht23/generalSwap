@@ -90,7 +90,7 @@ public class SwapOrchestrator {
 
             // save that player's state into the body state
             if (event.playerOut() != null) {
-                gameManager.playerInBody.switchBody(event.playerOut(), null);
+                gameManager.playerInBody.swapOut(event.playerOut());
                 playersInVoid.add(event.playerOut());
                 Player playOut = Bukkit.getPlayer(event.playerOut());
                 if (playOut != null) {
@@ -139,7 +139,7 @@ public class SwapOrchestrator {
         // players in void contains players who are swapped out but not swapped in.
         for (UUID pid : playersInVoid) {
             Player player = Bukkit.getPlayer(pid);
-            gameManager.playerInBody.switchBody(pid, null);
+            gameManager.playerInBody.swapOut(pid);
             VoiceChannelSwapper.swapOut(pid);
             if (player != null) {
                 doSwapOut(player);

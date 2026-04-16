@@ -24,6 +24,14 @@ public class Body {
     private Location spawn;
     public long nextSwapTick = 0;
 
+    private Body(String n) {
+        name = n;
+    }
+
+    public static Body SwappedOutBody() {
+        return new Body("SWAPPED OUT");
+    }
+
     public Body(PlayerState startingState, String n) {
         //this.id = id;
         //this.location = baseLocation;

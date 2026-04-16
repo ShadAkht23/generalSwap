@@ -91,6 +91,13 @@ public class GameManager {
         visualizer.startActionBarUpdates();
     }
 
+    public boolean isPlaying(UUID player) {
+        if (playerInBody.getBody(player) == null) {
+            return false;
+        }
+        return true;
+    }
+
     public void stop() {
         if (!started) {
             System.err.println("Cannot stop game that hasn't started");
