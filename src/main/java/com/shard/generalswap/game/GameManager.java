@@ -111,7 +111,6 @@ public class GameManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             inactiveManager.makeActive(player);
         }
-        inactiveManager.cleanupAllCages();
         getOrchestrator().reset();
     }
 
