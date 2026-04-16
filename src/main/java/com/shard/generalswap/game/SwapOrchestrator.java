@@ -77,6 +77,12 @@ public class SwapOrchestrator {
         GameManager gameManager = SwapPlugin.get().getGameManager();
 
         // event.playerOut() may be null for first swap.
+        for (SwapEvent event : events) {
+            if (gameManager.playerInBody.isSwappedOut(event.playerIn())) {
+                VoiceChannelSwapper.swapIn(event.playerIn());
+            }
+        }
+
         Set<UUID> playersInVoid = new HashSet<>();
         for (SwapEvent event : events) {
             System.out.println("Player " + event.playerIn() + "  being swapped into " + event.state().getName() +  " displacing " + event.playerOut());
@@ -98,6 +104,7 @@ public class SwapOrchestrator {
             // set player in's state to be the body its going to inhabit
             // if player offline, do this stuff in the join event.
             playersInVoid.remove(event.playerIn());
+
             gameManager.playerInBody.switchBody(event.playerIn(), event.state());
 
             Player playIn = Bukkit.getPlayer(event.playerIn());
@@ -132,6 +139,8 @@ public class SwapOrchestrator {
         // players in void contains players who are swapped out but not swapped in.
         for (UUID pid : playersInVoid) {
             Player player = Bukkit.getPlayer(pid);
+            gameManager.playerInBody.switchBody(pid, null);
+            VoiceChannelSwapper.swapOut(pid);
             if (player != null) {
                 doSwapOut(player);
             } else {

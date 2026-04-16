@@ -78,6 +78,7 @@ public class GameManager {
         players.removeAll(swappedIn);
         for (UUID inactive : players) {
             Player player = Bukkit.getPlayer(inactive);
+            VoiceChannelSwapper.swapOut(inactive);
             if (player != null) {
                 inactiveManager.makeInactive(player);
             } else {
