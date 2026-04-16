@@ -44,7 +44,9 @@ public class Visualizer {
         if (!SwapPlugin.get().getGameManager().gameStarted()) return;
         PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
         for (Map.Entry<UUID, Body> player : playerInBody.get()) {
-            if (player.getValue() != null) {
+            if (player.getValue() == null)
+                continue;
+            if (!player.getValue().getName().equals("SWAPPED OUT")) {
                 long timeLeft = player.getValue().ticksTillNextSwap();
                 String msg;
                 if (timeLeft == -1) {
