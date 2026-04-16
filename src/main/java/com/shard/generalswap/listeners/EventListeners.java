@@ -22,6 +22,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -206,6 +207,24 @@ public class EventListeners implements Listener {
                 }
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Component msg = event.deathMessage();
+        if (msg == null)
+            return;
+        if (plugin.getGameManager().gameStarted()) {
+            event.setShowDeathMessages(false);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
+                    plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
+                } else {
+                    player.sendMessage(msg);
+                }
+            }
+        }
+
     }
 
 }
