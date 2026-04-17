@@ -12,6 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 
+// hunter state: runnerIdx
+// runner state:
+
 // state of -1 = swapped out
 // state of 0 = empty state
 public class Body {
@@ -27,12 +30,14 @@ public class Body {
     private Body(String n) {
         name = n;
     }
+    private Role role;
+    private int runnerIdx;
 
     public static Body SwappedOutBody() {
         return new Body("SWAPPED OUT");
     }
 
-    public Body(PlayerState startingState, String n) {
+    public Body(PlayerState startingState, String n, Role r) {
         //this.id = id;
         //this.location = baseLocation;
         if (startingState != null) {
@@ -40,6 +45,7 @@ public class Body {
         }
         spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
         name = n;
+        role = r;
     }
 
    // public String getId() { return id; }
@@ -81,6 +87,10 @@ public class Body {
     }*/
 
     public String getName() {return name;}
+
+
+    public boolean isHunter() {return role == Role.HUNTER;}
+    public boolean isRunner() {return role == Role.RUNNER;}
 
     /*public void updateLocation(Location newLoc) {
         this.location = newLoc;

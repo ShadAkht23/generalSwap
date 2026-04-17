@@ -15,13 +15,11 @@ import java.util.UUID;
 public final class BodyController {
     private final Body body;
     private final List<SwapStage> cycle;
-    //private final PlayerRegistry playerRegistry;
     private int index = 0;
-    private boolean firstSwap = true;
     private final SwapOrchestrator orchestrator;
 
-    public BodyController(PlayerState ps, String name, List<SwapStage> cycle, SwapOrchestrator orchestrator) {
-        this.body = new Body(ps, name);
+    public BodyController(PlayerState ps, String name, List<SwapStage> cycle, Role role, SwapOrchestrator orchestrator) {
+        this.body = new Body(ps, name, role);
         this.cycle = cycle;
         this.orchestrator = orchestrator;
         //this.playerRegistry = pr;
@@ -77,7 +75,6 @@ public final class BodyController {
             oldStage = newstage;
         } while (playerIn == playerOut && i < cycle.size());
         if (playerIn != playerOut) {
-            firstSwap = false;
             index = (index + i) % cycle.size();
 
             body.setNextSwapTick(orchestrator.scheduleSwap(
@@ -98,4 +95,6 @@ public final class BodyController {
     public void onSwapExecuted() {
         scheduleNext();
     }
+
+    public Body getBody() {return body;}
 }

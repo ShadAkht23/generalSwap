@@ -69,27 +69,17 @@ public class SwapPlugin extends JavaPlugin {
             System.out.println("Successfully registered voice chat plugin");
         }
 
-        getLogger().info("Swap plugin enabled.");
-
-
-
         // Load config
-        Map<String, List<ConfigSwapStage>> bodies;
-        List<String> players;
         Configuration config;
         try {
             config = ConfigLoader.loadBodies(new File(getDataFolder(), "config.conf"));
-            bodies = config.bodies();
-            players = config.players();
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
 
-
         InactiveManager inactiveManager = new InactiveManager();
         SwapOrchestrator orchestrator = new SwapOrchestrator(inactiveManager);
-
 
         StartCommand startCommand = new StartCommand(this);
         try {
@@ -106,6 +96,7 @@ public class SwapPlugin extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new EventListeners(), this);
         gameManager = new GameManager(this, orchestrator, config, inactiveManager);
+        getLogger().info("Swap plugin enabled.");
     }
 
     public void setVoicechatServerApi(VoicechatApi vcplugin) {

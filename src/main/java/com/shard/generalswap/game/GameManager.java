@@ -5,6 +5,7 @@ import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.BodyController;
 import com.shard.generalswap.body.SwapStage;
 import com.shard.generalswap.state.PlayerInBody;
+import com.shard.generalswap.util.BodyConfig;
 import com.shard.generalswap.util.ConfigSwapStage;
 import com.shard.generalswap.util.Configuration;
 import jdk.management.jfr.ConfigurationInfo;
@@ -65,12 +66,12 @@ public class GameManager {
 
         Set<UUID> swappedIn = new HashSet<>();
 
-        for (Map.Entry<String, List<ConfigSwapStage>> css : config.bodies().entrySet()) {
+        for (Map.Entry<String, BodyConfig> css : config.bodies().entrySet()) {
             List<SwapStage> swapStages = new ArrayList<>();
-            for (ConfigSwapStage ss : css.getValue()) {
+            for (ConfigSwapStage ss : css.getValue().stages()) {
                 swapStages.add(new SwapStage(Bukkit.getPlayer(ss.playerName()).getUniqueId(), ss.durationTicks()));
             }
-            BodyController controller = new BodyController(null, css.getKey(), swapStages, orchestrator);
+            BodyController controller = new BodyController(null, css.getKey(), swapStages, css.getValue().role() , orchestrator);
             controller.start();
             swappedIn.add(controller.currentHost());
             controllers.add(controller);
@@ -118,5 +119,19 @@ public class GameManager {
         return orchestrator;
     }
     public InactiveManager getInactiveManager() {return inactiveManager;}
+
+    public List<Body> getHunters() {
+        return controllers.stream()
+                .map(BodyController::getBody)
+                .filter(Body::isHunter)
+                .toList();
+    }
+
+    public List<Body> getRunners() {
+        return controllers.stream()
+                .map(BodyController::getBody)
+                .filter(Body::isRunner)
+                .toList();
+    }
 }
 
