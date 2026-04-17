@@ -31,7 +31,7 @@ public class Body {
         name = n;
     }
     private Role role;
-    private int runnerIdx;
+    private int runnerIdx = 0;
 
     public static Body SwappedOutBody() {
         return new Body("SWAPPED OUT");

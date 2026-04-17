@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EnderPearl;
@@ -24,7 +25,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.UUID;
@@ -214,17 +220,68 @@ public class EventListeners implements Listener {
         Component msg = event.deathMessage();
         if (msg == null)
             return;
-        if (plugin.getGameManager().gameStarted()) {
-            event.setShowDeathMessages(false);
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
-                    plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
-                } else {
-                    player.sendMessage(msg);
-                }
+        if (!plugin.getGameManager().gameStarted()) {
+            return;
+        }
+
+        // MESSAGE MANAGEMENT
+        event.setShowDeathMessages(false);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
+                plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
+            } else {
+                player.sendMessage(msg);
             }
         }
 
+        // HUNTER DON't DROP COMPASS
+        if (plugin.getGameManager().isHunterRn(event.getPlayer().getUniqueId())) {
+            event.getDrops().removeIf(stack -> stack.getType() == Material.COMPASS);
+        }
+
     }
+
+    @EventHandler
+    public void onHunterDropCompass(PlayerDropItemEvent event) {
+        if (!plugin.getGameManager().gameStarted())
+            return;
+        if (plugin.getGameManager().isHunterRn(event.getPlayer().getUniqueId())) {
+            if (event.getItemDrop().getItemStack().getType() == Material.COMPASS) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        if (!plugin.getGameManager().gameStarted())
+            return;
+
+        if (plugin.getGameManager().isHunterRn(event.getPlayer().getUniqueId())) {
+            event.getPlayer().give(new ItemStack(Material.COMPASS));
+        }
+    }
+
+    @EventHandler
+    public void onMoveItemEvent(InventoryClickEvent event) {
+        if (!plugin.getGameManager().gameStarted()) {
+            return;
+        }
+        if (!(event.getWhoClicked() instanceof Player player))
+            return;
+
+        if (!plugin.getGameManager().isHunterRn(player.getUniqueId()))
+            return;
+
+        if (event.getView().getType() == InventoryType.PLAYER)
+            return;
+
+        // now check if being placed in top inventory somehow.
+        // ehhh doesn't matter they can always give themselves a compass.
+
+        //  TODO make sure player doesn't move the compass away.
+    }
+
+
 
 }

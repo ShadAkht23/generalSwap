@@ -16,6 +16,7 @@ public final class BodyController {
     private final Body body;
     private final List<SwapStage> cycle;
     private int index = 0;
+    private int oldIndex = 0;
     private final SwapOrchestrator orchestrator;
 
     public BodyController(PlayerState ps, String name, List<SwapStage> cycle, Role role, SwapOrchestrator orchestrator) {
@@ -30,7 +31,8 @@ public final class BodyController {
     }
 
     public UUID currentHost() {
-        return cycle.get(index).pid();
+        //int actualIndex = ((index - 1 + cycle.size()) % cycle.size());
+        return cycle.get(oldIndex).pid();
     }
 
     public Map<UUID, Long> nextSwapTicks() {
@@ -75,6 +77,7 @@ public final class BodyController {
             oldStage = newstage;
         } while (playerIn == playerOut && i < cycle.size());
         if (playerIn != playerOut) {
+            oldIndex = index;
             index = (index + i) % cycle.size();
 
             body.setNextSwapTick(orchestrator.scheduleSwap(
