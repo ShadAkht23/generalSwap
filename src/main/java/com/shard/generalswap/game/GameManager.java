@@ -126,6 +126,9 @@ public class GameManager {
     public SwapOrchestrator getOrchestrator() {
         return orchestrator;
     }
+
+    public Visualizer getVisualizer() {return visualizer;}
+
     public InactiveManager getInactiveManager() {return inactiveManager;}
 
     public List<Body> getHunters() {

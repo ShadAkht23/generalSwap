@@ -322,8 +322,8 @@ public class EventListeners implements Listener {
                         compass.setItemMeta(compassMeta);
 
                         body.setTrackingPos(runnerLoc);
-
-                        Visualizer.trackingUpdateSuccess(player, runner.getName());
+                        plugin.getGameManager().getVisualizer()
+                                .trackingUpdateSuccess(player, runner.getName());
                         return;
                     } else {
                         if (compassMeta.hasLodestone()) {
@@ -334,12 +334,14 @@ public class EventListeners implements Listener {
                         body.setTrackingPos(runnerLoc);
 
                         //player.sendMessage("Compass is pointing to " + runner.getName());
-                        Visualizer.trackingUpdateSuccess(player, runner.getName());
+                        plugin.getGameManager().getVisualizer()
+                                .trackingUpdateSuccess(player, runner.getName());
                         return;
                         // TODO might have to use getCompassTarget for the swap.
                     }
                 } else {
-                    Visualizer.trackingUpdateBadDimension(player, runner.getName());
+                    plugin.getGameManager().getVisualizer()
+                            .trackingUpdateBadDimension(player, runner.getName());
                     return;
                 }
             }
