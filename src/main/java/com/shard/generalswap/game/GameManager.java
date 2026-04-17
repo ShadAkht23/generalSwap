@@ -8,6 +8,7 @@ import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.BodyConfig;
 import com.shard.generalswap.util.ConfigSwapStage;
 import com.shard.generalswap.util.Configuration;
+import com.shard.generalswap.util.PlayerStateUtil;
 import jdk.management.jfr.ConfigurationInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -76,9 +77,11 @@ public class GameManager {
             BodyController controller = new BodyController(null, css.getKey(), swapStages, css.getValue().role() , orchestrator);
             controller.start();
             swappedIn.add(controller.currentHost());
+            Player player = Bukkit.getPlayer(controller.currentHost());
             if (controller.getBody().isHunter()) {
-                Bukkit.getPlayer(controller.currentHost()).give(new ItemStack(Material.COMPASS));
+                player.give(new ItemStack(Material.COMPASS));
             }
+            controller.getBody().set(PlayerStateUtil.capturePlayerState(player));
             controllers.add(controller);
         }
         players.removeAll(swappedIn);
@@ -132,10 +135,9 @@ public class GameManager {
                 .toList();
     }
 
-    public List<Body> getRunners() {
+    public List<BodyController> getRunners() {
         return controllers.stream()
-                .map(BodyController::getBody)
-                .filter(Body::isRunner)
+                .filter(c -> c.getBody().isRunner())
                 .toList();
     }
 

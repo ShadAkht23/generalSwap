@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
+import javax.swing.*;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,16 @@ public class Visualizer {
         }
     }
 
+    public static void trackingUpdateSuccess(Player hunter, String runnerName) {
+        String msg = String.format("§aTracking " + runnerName);
+        ActionBarUtil.sendActionBar(hunter, msg);
+    }
+
+    public static void trackingUpdateBadDimension(Player hunter, String runnerName) {
+        String msg = String.format("§c" + runnerName + " is not your dimension");
+        ActionBarUtil.sendActionBar(hunter, msg);
+    }
+
     private void updateActionBar() {
         if (!SwapPlugin.get().getGameManager().gameStarted()) return;
         PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
@@ -49,13 +60,13 @@ public class Visualizer {
             if (!player.getValue().getName().equals("SWAPPED OUT")) {
                 long timeLeft = player.getValue().ticksTillNextSwap();
                 String msg;
+                Player msgMe = Bukkit.getPlayer(player.getKey());
                 if (timeLeft == -1) {
                     msg = "§eNo Swap";
                 } else {
                     msg = String.format("§eSwap in: §c%ds", Math.max(0, timeLeft) / 20);
+                    ActionBarUtil.sendActionBar(msgMe, msg);
                 }
-                Player msgMe = Bukkit.getPlayer(player.getKey());
-                ActionBarUtil.sendActionBar(msgMe, msg);
                 BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
             } else {
                 Player msgMe = Bukkit.getPlayer(player.getKey());

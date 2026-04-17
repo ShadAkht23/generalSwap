@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.UUID;
 
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 // state of -1 = swapped out
 // state of 0 = empty state
 public class Body {
+
 
     private final String name;
     //private final String id;
@@ -92,6 +94,15 @@ public class Body {
     public boolean isHunter() {return role == Role.HUNTER;}
     public boolean isRunner() {return role == Role.RUNNER;}
 
+    public BodyController pointingTo() {
+        return SwapPlugin.get().getGameManager().getRunners().get(runnerIdx);
+    }
+    public void setTrackingPos(Location loc) {
+        state.setTrackingTarget(loc);
+    }
+    public Location getTrackingPos() {
+        return state.getTrackingTarget();
+    }
     /*public void updateLocation(Location newLoc) {
         this.location = newLoc;
     }*/

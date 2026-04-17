@@ -3,7 +3,9 @@ package com.shard.generalswap.listeners;
 import com.destroystokyo.paper.event.player.PlayerSetSpawnEvent;
 import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.Body;
+import com.shard.generalswap.body.BodyController;
 import com.shard.generalswap.game.SwapOrchestrator;
+import com.shard.generalswap.game.Visualizer;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.PlayerStateUtil;
@@ -14,6 +16,7 @@ import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EnderPearl;
@@ -29,8 +32,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.UUID;
@@ -283,5 +288,62 @@ public class EventListeners implements Listener {
     }
 
 
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!plugin.getGameManager().gameStarted())
+            return;
+        Player player = event.getPlayer();
+        if (!plugin.getGameManager().isHunterRn(player.getUniqueId()))
+            return;
+
+        if (event.getHand() != EquipmentSlot.HAND)
+            return;
+        if (player.getInventory().getItemInMainHand().getType() == Material.COMPASS) {
+            ItemStack compass = player.getInventory().getItemInMainHand();
+            CompassMeta compassMeta = (CompassMeta) compass.getItemMeta();
+
+            if (event.getAction().isRightClick()) {
+                // RESET COMPASS POSITION!
+
+                // runner they're tracking
+                Body body = plugin.getGameManager().playerInBody.getBody(player.getUniqueId());
+                BodyController runnerBody = body.pointingTo();
+                Player runner = Bukkit.getPlayer(runnerBody.currentHost());
+                if (runner == null) {
+                    player.sendMessage("Runner not in server. Could not track");
+                    return;
+                }
+                Location runnerLoc = runner.getLocation();
+
+                if (player.getWorld().getEnvironment() == runner.getWorld().getEnvironment()) {
+                    if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
+                        compassMeta.setLodestoneTracked(false);
+                        compassMeta.setLodestone(runnerLoc);
+                        compass.setItemMeta(compassMeta);
+
+                        body.setTrackingPos(runnerLoc);
+
+                        Visualizer.trackingUpdateSuccess(player, runner.getName());
+                        return;
+                    } else {
+                        if (compassMeta.hasLodestone()) {
+                            compass.setItemMeta((new ItemStack(Material.COMPASS)).getItemMeta());
+                        }
+                        player.setCompassTarget(runnerLoc);
+
+                        body.setTrackingPos(runnerLoc);
+
+                        //player.sendMessage("Compass is pointing to " + runner.getName());
+                        Visualizer.trackingUpdateSuccess(player, runner.getName());
+                        return;
+                        // TODO might have to use getCompassTarget for the swap.
+                    }
+                } else {
+                    Visualizer.trackingUpdateBadDimension(player, runner.getName());
+                    return;
+                }
+            }
+        }
+    }
 
 }

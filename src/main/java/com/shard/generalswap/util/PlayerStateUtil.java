@@ -3,10 +3,14 @@ package com.shard.generalswap.util;
 
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.BukkitCompat;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.CompassMeta;
 
 // Use fully-qualified reference for BukkitCompat to avoid IDE false positives
 
@@ -65,7 +69,8 @@ public class PlayerStateUtil {
                 player.getFlySpeed(),
                 player.getPortalCooldown(),
                 overflow,
-                player.getEnderPearls()
+                player.getEnderPearls(),
+                null
         );
     }
 
@@ -140,6 +145,40 @@ public class PlayerStateUtil {
                 vehicle.addPassenger(player);
             }
         } catch (Throwable ignored) {}
+
+
+        // manhunt
+        if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
+            Map<Integer, ? extends ItemStack> stacks = player.getInventory().all(Material.COMPASS);
+            for (Map.Entry<Integer, ? extends ItemStack> entry : stacks.entrySet()) {
+                ItemStack compass = player.getInventory().getItem(entry.getKey());
+                CompassMeta compassMeta = (CompassMeta) compass.getItemMeta();
+
+                compassMeta.setLodestoneTracked(false);
+                if (state.getTrackingTarget() == null) {
+                    System.err.println("TRACKIGN TARGET WAS NULL! ... thats actually fine if the previous player didn't click their compass");
+                } else {
+                    compassMeta.setLodestone(state.getTrackingTarget());
+                    compass.setItemMeta(compassMeta);
+
+                }
+            }
+        } else {
+            Map<Integer, ? extends ItemStack> stacks = player.getInventory().all(Material.COMPASS);
+            for (Map.Entry<Integer, ? extends ItemStack> entry : stacks.entrySet()) {
+                ItemStack compass = player.getInventory().getItem(entry.getKey());
+                CompassMeta compassMeta = (CompassMeta) compass.getItemMeta();
+
+                if (compassMeta.hasLodestone()) {
+                    compass.setItemMeta((new ItemStack(Material.COMPASS)).getItemMeta());
+                }
+                if (state.getTrackingTarget() == null) {
+                    System.err.println("TRACKIGN TARGET WAS NULL! ... thats actually fine if the previous player didn't click their compass");
+                } else {
+                    player.setCompassTarget(state.getTrackingTarget());
+                }
+            }
+        }
     }
 
     public static void clear(Player player) {
