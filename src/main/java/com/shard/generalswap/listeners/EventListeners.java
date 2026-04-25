@@ -214,6 +214,8 @@ public class EventListeners implements Listener {
                     // only add if they are about to get swapped into the player who owns this body??
                     plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
                 } else {
+                    if (msg.toString().length() < 5)
+                        return;
                     player.sendMessage(msg);
                 }
             }
@@ -314,37 +316,77 @@ public class EventListeners implements Listener {
                     return;
                 }
                 Location runnerLoc = runner.getLocation();
-
-                if (player.getWorld().getEnvironment() == runner.getWorld().getEnvironment()) {
-                    if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
-                        compassMeta.setLodestoneTracked(false);
-                        compassMeta.setLodestone(runnerLoc);
-                        compass.setItemMeta(compassMeta);
-
-                        body.setTrackingPos(runnerLoc);
+                World.Environment playerEnv = player.getWorld().getEnvironment();
+                if (playerEnv != runnerLoc.getWorld().getEnvironment() &&
+                    playerEnv == World.Environment.NORMAL) {
+                    // use last known overworld position.
+                    Location lastKnown = runnerBody.getBody().getLastKnownOverworldLoc();
+                    if (lastKnown == null) {
                         plugin.getGameManager().getVisualizer()
-                                .trackingUpdateSuccess(player, runner.getName());
+                                .trackingUpdateBadDimension(player, runner.getName());
                         return;
-                    } else {
-                        if (compassMeta.hasLodestone()) {
-                            compass.setItemMeta((new ItemStack(Material.COMPASS)).getItemMeta());
-                        }
-                        player.setCompassTarget(runnerLoc);
-
-                        body.setTrackingPos(runnerLoc);
-
-                        //player.sendMessage("Compass is pointing to " + runner.getName());
-                        plugin.getGameManager().getVisualizer()
-                                .trackingUpdateSuccess(player, runner.getName());
-                        return;
-                        // TODO might have to use getCompassTarget for the swap.
                     }
-                } else {
-                    plugin.getGameManager().getVisualizer()
-                            .trackingUpdateBadDimension(player, runner.getName());
-                    return;
+                    runnerLoc = lastKnown;
+                    player.sendMessage("§6Using " + runner.getName() + "'s last known location in the overworld");
                 }
+                if (playerEnv != runnerLoc.getWorld().getEnvironment() &&
+                    playerEnv == World.Environment.NETHER) {
+
+                    Location lastKnown = runnerBody.getBody().getLastKnownNetherLoc();
+                    if (lastKnown == null) {
+                        plugin.getGameManager().getVisualizer()
+                                .trackingUpdateBadDimension(player, runner.getName());
+                        return;
+                    }
+                    runnerLoc = lastKnown;
+                    player.sendMessage("§6Using " + runner.getName() + "'s last known location in the nether");
+                }
+
+
+                if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
+                    setCompassPointNether(compass, compassMeta, runnerLoc);
+                    body.setTrackingPos(runnerLoc);
+
+                    plugin.getGameManager().getVisualizer()
+                            .trackingUpdateSuccess(player, runner.getName());
+                } else {
+                    setCompassPointOverworld(player, compass, compassMeta, runnerLoc);
+
+                    body.setTrackingPos(runnerLoc);
+                    plugin.getGameManager().getVisualizer()
+                            .trackingUpdateSuccess(player, runner.getName());
+                    // TODO might have to use getCompassTarget for the swap.
+                }
+
             }
+        }
+    }
+
+    private void setCompassPointOverworld(Player hunter, ItemStack compass ,CompassMeta compassMeta, Location loc) {
+        if (compassMeta.hasLodestone()) {
+            compass.setItemMeta((new ItemStack(Material.COMPASS)).getItemMeta());
+        }
+        hunter.setCompassTarget(loc);
+    }
+
+    private void setCompassPointNether(ItemStack compass, CompassMeta compassMeta, Location loc) {
+        compassMeta.setLodestoneTracked(false);
+        compassMeta.setLodestone(loc);
+        compass.setItemMeta(compassMeta);
+    }
+
+    @EventHandler
+    public void onPlayerPortal(PlayerPortalEvent event) {
+        if (!plugin.getGameManager().gameStarted())
+            return;
+        if (!plugin.getGameManager().isRunnerRn(event.getPlayer().getUniqueId()))
+            return;
+        Body body = plugin.getGameManager().playerInBody.getBody(event.getPlayer().getUniqueId());
+        Location from = event.getFrom();
+        if (from.getWorld().getEnvironment() == World.Environment.NORMAL) {
+            body.setLastKnownOverworldLoc(from);
+        } else if (from.getWorld().getEnvironment() == World.Environment.NETHER) {
+            body.setLastKnownNetherLoc(from);
         }
     }
 

@@ -3,7 +3,7 @@ version: '1.0'
 main: com.shard.generalswap.SwapPlugin
 api-version: '1.21'
 authors: [Shard0fLightning]
-depend: [ManhuntPlus, voicechat]
+depend: [ManhuntPlus]
 commands:
   gswap:
     description: control generalised swap

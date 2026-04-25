@@ -45,6 +45,8 @@ public class PlayerState {
     private final List<ItemStack> invOverflow;
     private Collection<EnderPearl> airbornePearls;
     private Location trackingTarget;
+    private Location lastOverworldLoc;
+    private Location lastNetherLoc;
 
 
     public PlayerState(ItemStack[] inventory, ItemStack[] armor, ItemStack offhand, Location location,
@@ -215,10 +217,22 @@ public class PlayerState {
 
     public Location getTrackingTarget() { return trackingTarget; }
 
+    public Location getLastOverworldLoc() {return lastOverworldLoc; }
+
+    public Location getLastNetherLoc() {return lastNetherLoc; }
+
     public void setTrackingTarget(Location loc) {trackingTarget = loc;}
 
     public void setPearlLandLoc(Location loc) {
         location = loc;
         vehicle = null;
+    }
+
+    public void setLastOverworldLoc(Location loc) {
+        lastOverworldLoc = loc;
+    }
+
+    public void setLastNetherLoc(Location loc) {
+        lastNetherLoc = loc;
     }
 }

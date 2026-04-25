@@ -63,11 +63,11 @@ public class SwapPlugin extends JavaPlugin {
             getLogger().info("Successfully hooked into Manhunt+!");
         }
 
-        BukkitVoicechatService service = getServer().getServicesManager().load(BukkitVoicechatService.class);
-        if (service != null) {
-            service.registerPlugin(new VoiceChatPlugin(this));
-            System.out.println("Successfully registered voice chat plugin");
-        }
+        //BukkitVoicechatService service = getServer().getServicesManager().load(BukkitVoicechatService.class);
+        //if (service != null) {
+            //service.registerPlugin(new VoiceChatPlugin(this));
+            //System.out.println("Successfully registered voice chat plugin");
+       // }
 
         // Load config
         Configuration config;

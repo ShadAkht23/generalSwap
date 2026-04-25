@@ -59,7 +59,7 @@ public class SwapOrchestrator {
     public void doSwapIn(@NotNull Player player, Body body) {
         body.applyPlayerState(player);
         inactiveManager.makeActive(player);
-        player.sendMessage("you have been swapped into body: " + body.getName());
+        //player.sendMessage("you have been swapped into body: " + body.getName());
         PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
         playerInBody.emptyPendingChatMsgs(player.getUniqueId());
         playerInBody.appliedState(player.getUniqueId());

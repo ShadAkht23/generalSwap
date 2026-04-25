@@ -152,5 +152,14 @@ public class GameManager {
         }
         return false;
     }
+
+    public boolean isRunnerRn(UUID player) {
+        for (BodyController controller : controllers) {
+            if (controller.getBody().isRunner() && controller.currentHost() == player) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 

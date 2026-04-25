@@ -97,12 +97,30 @@ public class Body {
     public BodyController pointingTo() {
         return SwapPlugin.get().getGameManager().getRunners().get(runnerIdx);
     }
+
     public void setTrackingPos(Location loc) {
         state.setTrackingTarget(loc);
     }
     public Location getTrackingPos() {
         return state.getTrackingTarget();
     }
+
+    public void setLastKnownOverworldLoc(Location loc) {
+        state.setLastOverworldLoc(loc);
+    }
+
+    public void setLastKnownNetherLoc(Location loc) {
+        state.setLastNetherLoc(loc);
+    }
+
+    public Location getLastKnownOverworldLoc() {
+        return state.getLastOverworldLoc();
+    }
+
+    public Location getLastKnownNetherLoc() {
+        return state.getLastNetherLoc();
+    }
+
     /*public void updateLocation(Location newLoc) {
         this.location = newLoc;
     }*/

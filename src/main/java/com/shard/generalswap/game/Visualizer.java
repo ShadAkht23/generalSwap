@@ -58,6 +58,7 @@ public class Visualizer {
         }
         texts.trackingMsg = msg;
         texts.trackingTick = Bukkit.getCurrentTick();
+        barTexts.put(uuid, texts);
     }
 
     private void updateBarPlayer(UUID uuid) {
@@ -65,11 +66,17 @@ public class Visualizer {
         if (texts == null)
             return;
         String msg = "";
-        if (texts.nextSwapIn != null)
-            msg = texts.nextSwapIn;
+        boolean empty = true;
+        if (texts.nextSwapIn != null) {
+            msg = msg + texts.nextSwapIn;
+            empty = false;
+        }
         if (texts.trackingMsg != null) {
             if (Bukkit.getCurrentTick() - texts.trackingTick < 40) {
-                msg = msg + "  §b|  " + texts.trackingMsg;
+                if (!empty) {
+                    msg = msg + "  §b|  ";
+                }
+                msg = msg + texts.trackingMsg;
             } else {
                 texts.trackingMsg = null;
             }
@@ -79,14 +86,14 @@ public class Visualizer {
             ActionBarUtil.sendActionBar(player, msg);
     }
 
-    public  void trackingUpdateSuccess(Player hunter, String runnerName) {
+    public void trackingUpdateSuccess(Player hunter, String runnerName) {
         String msg = String.format("§aTracking " + runnerName);
         updateTracking(hunter.getUniqueId(), msg);
         updateBarPlayer(hunter.getUniqueId());
         //ActionBarUtil.sendActionBar(hunter, msg);
     }
 
-    public  void trackingUpdateBadDimension(Player hunter, String runnerName) {
+    public void trackingUpdateBadDimension(Player hunter, String runnerName) {
         String msg = String.format("§c" + runnerName + " is not your dimension");
         updateTracking(hunter.getUniqueId(), msg);
         updateBarPlayer(hunter.getUniqueId());
