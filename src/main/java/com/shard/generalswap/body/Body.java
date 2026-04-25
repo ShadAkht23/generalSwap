@@ -121,6 +121,11 @@ public class Body {
         return state.getLastNetherLoc();
     }
 
+    public void incRunnerIdx() {
+        runnerIdx += 1;
+        runnerIdx =  runnerIdx % SwapPlugin.get().getGameManager().getRunners().size();
+    }
+
     /*public void updateLocation(Location newLoc) {
         this.location = newLoc;
     }*/

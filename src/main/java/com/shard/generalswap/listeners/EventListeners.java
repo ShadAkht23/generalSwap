@@ -205,7 +205,7 @@ public class EventListeners implements Listener {
         Component msg = event.message();
         Component empty = Component.empty();
         //Component notEmpty = Component.empty().content("received advancement");
-        event.message(empty);
+        event.message(null);
         if (msg == null)
             return;
         if (plugin.getGameManager().gameStarted()) {
@@ -327,7 +327,7 @@ public class EventListeners implements Listener {
                         return;
                     }
                     runnerLoc = lastKnown;
-                    player.sendMessage("§6Using " + runner.getName() + "'s last known location in the overworld");
+                    player.sendMessage("§eUsing " + runner.getName() + "'s last known location in the overworld");
                 }
                 if (playerEnv != runnerLoc.getWorld().getEnvironment() &&
                     playerEnv == World.Environment.NETHER) {
@@ -339,7 +339,7 @@ public class EventListeners implements Listener {
                         return;
                     }
                     runnerLoc = lastKnown;
-                    player.sendMessage("§6Using " + runner.getName() + "'s last known location in the nether");
+                    player.sendMessage("§eUsing " + runner.getName() + "'s last known location in the nether");
                 }
 
 
@@ -359,6 +359,13 @@ public class EventListeners implements Listener {
                 }
 
             }
+            if (event.getAction().isLeftClick()) {
+                // switch runner!
+                Body body = plugin.getGameManager().playerInBody.getBody(player.getUniqueId());
+                BodyController runnerBody = body.pointingTo();
+                body.incRunnerIdx();
+            }
+
         }
     }
 

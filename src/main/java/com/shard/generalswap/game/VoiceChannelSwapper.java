@@ -59,7 +59,10 @@ public class VoiceChannelSwapper {
             System.out.println("Response: " + response);
 
 
-        } catch (Exception e) {
+        } catch (ConnectException e) {
+            System.err.println("HHTP Connection Refused");
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }

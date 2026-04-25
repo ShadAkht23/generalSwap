@@ -27,7 +27,7 @@ TODO
     Timer for Swapped out players _/
     manhunt compass
     does ender chest work? respawn anchor? pet owning?
-    cage without visible bedrock?
+    cage without visible bedrock? _/
     handle end portal thing
     update hostile mob targetting
     fix endermen mob targetting
