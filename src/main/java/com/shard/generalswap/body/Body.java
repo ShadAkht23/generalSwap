@@ -82,7 +82,23 @@ public class Body {
     }
 
     public void set(PlayerState s) {
+        Location prevOverworld = state != null ? state.getLastOverworldLoc() : null;
+        Location prevNether = state != null ? state.getLastNetherLoc() : null;
+
         state = s;
+
+        // Prefer freshly captured, fall back to previously known
+        if (s.getLastOverworldLoc() != null) {
+            setLastKnownOverworldLoc(s.getLastOverworldLoc());
+        } else if (prevOverworld != null) {
+            setLastKnownOverworldLoc(prevOverworld);
+        }
+
+        if (s.getLastNetherLoc() != null) {
+            setLastKnownNetherLoc(s.getLastNetherLoc());
+        } else if (prevNether != null) {
+            setLastKnownNetherLoc(prevNether);
+        }
     }
     /*public int get() {
         return state;
@@ -107,10 +123,12 @@ public class Body {
 
     public void setLastKnownOverworldLoc(Location loc) {
         state.setLastOverworldLoc(loc);
+        System.out.println("Setting last known overworld loc to " + loc.toString() + "for body " + getName());
     }
 
     public void setLastKnownNetherLoc(Location loc) {
         state.setLastNetherLoc(loc);
+        System.out.println("Setting last known nether loc to " + loc.toString() + "for body " + getName());
     }
 
     public Location getLastKnownOverworldLoc() {

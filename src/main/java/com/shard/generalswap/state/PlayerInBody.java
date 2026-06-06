@@ -104,7 +104,11 @@ public class PlayerInBody {
 
 
     public boolean isSwappedOut(UUID player) {
-        return playerToBody.get(player).getName().equals("SWAPPED OUT");
+        Body body = playerToBody.get(player);
+        if (body != null)
+            return playerToBody.get(player).getName().equals("SWAPPED OUT");
+        else
+            return false;
     }
 
     public boolean isSwappedIn(UUID player) {

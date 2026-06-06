@@ -8,11 +8,13 @@ import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.game.Visualizer;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.state.PlayerState;
+import com.shard.generalswap.util.Colours;
 import com.shard.generalswap.util.PlayerStateUtil;
 import io.papermc.paper.event.player.AbstractChatEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -202,6 +204,9 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void onAdvancement(PlayerAdvancementDoneEvent event) {
+        if (!plugin.getGameManager().gameStarted()) {
+            return;
+        }
         Component msg = event.message();
         Component empty = Component.empty();
         //Component notEmpty = Component.empty().content("received advancement");
@@ -317,7 +322,8 @@ public class EventListeners implements Listener {
                 }
                 Location runnerLoc = runner.getLocation();
                 World.Environment playerEnv = player.getWorld().getEnvironment();
-                if (playerEnv != runnerLoc.getWorld().getEnvironment() &&
+                World.Environment runnerEnv = runnerLoc.getWorld().getEnvironment();
+                if (playerEnv != runnerEnv &&
                     playerEnv == World.Environment.NORMAL) {
                     // use last known overworld position.
                     Location lastKnown = runnerBody.getBody().getLastKnownOverworldLoc();
@@ -327,7 +333,7 @@ public class EventListeners implements Listener {
                         return;
                     }
                     runnerLoc = lastKnown;
-                    player.sendMessage("§eUsing " + runner.getName() + "'s last known location in the overworld");
+                    player.sendMessage(Component.text("Using" + runner.getName() + "'s last known location").color(Colours.DarkAqua));
                 }
                 if (playerEnv != runnerLoc.getWorld().getEnvironment() &&
                     playerEnv == World.Environment.NETHER) {
@@ -339,7 +345,8 @@ public class EventListeners implements Listener {
                         return;
                     }
                     runnerLoc = lastKnown;
-                    player.sendMessage("§eUsing " + runner.getName() + "'s last known location in the nether");
+                    player.sendMessage(
+                            Component.text("Using " + runner.getName() + "'s last known location").color(Colours.DarkAqua));
                 }
 
 

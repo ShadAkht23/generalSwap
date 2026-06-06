@@ -57,7 +57,7 @@ public class PlayerState {
                        double absorptionAmount, Entity vehicle, boolean inVehicle, int ticksLived,
                        double lastDamage, int noDamageTicks, boolean gliding, float walkSpeed,
                        float flySpeed, int portalCooldown, List<ItemStack> invoverflow, Collection<EnderPearl> airbornePearls,
-                       Location trackingTarget) {
+                       Location trackingTarget, Location lastOverworldLoc, Location lastNetherLoc) {
         this.inventory = inventory;
         this.armor = armor;
         this.offhand = offhand;
@@ -90,6 +90,10 @@ public class PlayerState {
         this.invOverflow = invoverflow;
         this.airbornePearls = airbornePearls;
         this.trackingTarget = trackingTarget;
+        if (lastOverworldLoc != null)
+            this.lastOverworldLoc = lastOverworldLoc;
+        if (lastNetherLoc != null)
+            this.lastNetherLoc = lastNetherLoc;
     }
 
 

@@ -5,15 +5,20 @@ import com.shard.generalswap.body.Body;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.ActionBarUtil;
 import com.shard.generalswap.util.BukkitCompat;
+import com.shard.generalswap.util.Colours;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import net.kyori.adventure.text.Component;
 
-import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import static net.kyori.adventure.title.Title.title;
 
 public class Visualizer {
 
@@ -42,7 +47,7 @@ public class Visualizer {
             }
         }
     }
-    private void updateSwapIn(UUID uuid, String msg) {
+    private void updateSwapIn(UUID uuid, TextComponent msg) {
         ActionBarTexts texts = barTexts.get(uuid);
         if (texts == null) {
             texts = new ActionBarTexts();
@@ -51,7 +56,7 @@ public class Visualizer {
         barTexts.put(uuid, texts);
     }
 
-    private void updateTracking(UUID uuid, String msg) {
+    private void updateTracking(UUID uuid, TextComponent msg) {
         ActionBarTexts texts = barTexts.get(uuid);
         if (texts == null) {
             texts = new ActionBarTexts();
@@ -65,39 +70,38 @@ public class Visualizer {
         ActionBarTexts texts = barTexts.get(uuid);
         if (texts == null)
             return;
-        String msg = "";
+        TextComponent msg = Component.empty();
         boolean empty = true;
         if (texts.nextSwapIn != null) {
-            msg = msg + texts.nextSwapIn;
+            msg = msg.append(texts.nextSwapIn);
             empty = false;
         }
         if (texts.trackingMsg != null) {
             if (Bukkit.getCurrentTick() - texts.trackingTick < 40) {
                 if (!empty) {
-                    msg = msg + "  §b|  ";
+                    msg = msg.append(Component.text("  |  ").color(Colours.Aqua));
                 }
-                msg = msg + texts.trackingMsg;
+                msg = msg.append(texts.trackingMsg);
             } else {
                 texts.trackingMsg = null;
             }
         }
         Player player = Bukkit.getPlayer(uuid);
-        if (player != null)
-            ActionBarUtil.sendActionBar(player, msg);
+        if (player != null) {
+            player.sendActionBar(msg);
+        }
     }
 
     public void trackingUpdateSuccess(Player hunter, String runnerName) {
-        String msg = String.format("§aTracking " + runnerName);
+        TextComponent msg = Component.text("Tracking "  + runnerName).color(Colours.Green);
         updateTracking(hunter.getUniqueId(), msg);
         updateBarPlayer(hunter.getUniqueId());
-        //ActionBarUtil.sendActionBar(hunter, msg);
     }
 
     public void trackingUpdateBadDimension(Player hunter, String runnerName) {
-        String msg = String.format("§c" + runnerName + " is not your dimension");
+        TextComponent msg = Component.text(runnerName + " is not in your dimension").color(Colours.Red);
         updateTracking(hunter.getUniqueId(), msg);
         updateBarPlayer(hunter.getUniqueId());
-
     }
 
     private void updateActionBar() {
@@ -108,12 +112,13 @@ public class Visualizer {
                 continue;
             if (!player.getValue().getName().equals("SWAPPED OUT")) {
                 long timeLeft = player.getValue().ticksTillNextSwap();
-                String msg;
+                TextComponent msg;
                 Player msgMe = Bukkit.getPlayer(player.getKey());
                 if (timeLeft == -1) {
-                    msg = "§eNo Swap";
+                    msg = Component.text("No Swap").color(Colours.Yellow);
                 } else {
-                    msg = String.format("§eSwap in: §c%ds", Math.max(0, timeLeft) / 20);
+                    msg = Component.text("Swap in: ").color(Colours.Yellow)
+                                    .append(Component.text(Math.max(0, timeLeft) / 20).color(Colours.Red));
                     updateSwapIn(player.getKey(), msg);
                     updateBarPlayer(player.getKey());
                     //ActionBarUtil.sendActionBar(msgMe, msg);
@@ -123,13 +128,14 @@ public class Visualizer {
                 Player msgMe = Bukkit.getPlayer(player.getKey());
                 // return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
                 Long time =  (playerInBody.getNextSwapIn(player.getKey()) - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick) ) / 20;
-                String msg = String.format("§eSwap in: §c%ds", time);
+                TextComponent msg = Component.text("Swap in: ").color(Colours.Yellow).append(Component.text(time).color(Colours.Red));
                 //ActionBarUtil.sendActionBar(msgMe, msg);
                 updateSwapIn(player.getKey(), msg);
                 updateBarPlayer(player.getKey());
 
-                String t = "§6§lYou Are Swapped Out!";
-                BukkitCompat.showTitle(msgMe, t, "", 0, Integer.MAX_VALUE, 0);
+                //String t = "§6§lYou Are Swapped Out!";
+                msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty()));
+                //BukkitCompat.showTitle(msgMe, t, "", 0, Integer.MAX_VALUE, 0);
 
 
             }

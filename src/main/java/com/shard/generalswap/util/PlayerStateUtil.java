@@ -3,6 +3,7 @@ package com.shard.generalswap.util;
 
 import com.shard.generalswap.state.PlayerState;
 import com.shard.generalswap.util.BukkitCompat;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EnderPearl;
@@ -37,6 +38,13 @@ public class PlayerStateUtil {
         if (vehicle != null) {
             vehicle.removePassenger(player);
         }
+        Location loc = player.getLocation();
+        Location overworldLoc = null;
+        Location netherLoc = null;
+        if (loc.getWorld().getEnvironment() == World.Environment.NORMAL)
+            overworldLoc = loc;
+        if (loc.getWorld().getEnvironment() == World.Environment.NETHER)
+            netherLoc = loc;
 
         return new PlayerState(
                 player.getInventory().getContents().clone(),
@@ -70,7 +78,10 @@ public class PlayerStateUtil {
                 player.getPortalCooldown(),
                 overflow,
                 player.getEnderPearls(),
-                null
+                null,
+                overworldLoc,
+                netherLoc
+
         );
     }
 
