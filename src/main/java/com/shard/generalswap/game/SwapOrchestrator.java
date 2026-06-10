@@ -44,6 +44,10 @@ public class SwapOrchestrator {
         executeSwaps(events);
     }
 
+    public long getCurrentTick() {
+        return currentTick;
+    }
+
     public long scheduleSwap(UUID playerIn, UUID playerOut, Body state, BodyController controller, long delayTicks) {
         long target = currentTick + delayTicks;
         queue.computeIfAbsent(target, k -> new ArrayList<>())

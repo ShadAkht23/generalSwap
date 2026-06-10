@@ -25,12 +25,14 @@ public class Visualizer {
 
     private final InactiveManager inactiveManager;
     private final PlayerInBody playerInBody;
+    private final SwapOrchestrator orchestrator;
 
 
-    public Visualizer(InactiveManager inactiveManager, PlayerInBody playerInBody) {
+    public Visualizer(InactiveManager inactiveManager, PlayerInBody playerInBody, SwapOrchestrator orchestrator) {
         barTexts = new HashMap<>();
         this.inactiveManager = inactiveManager;
         this.playerInBody = playerInBody;
+        this.orchestrator = orchestrator;
     }
 
     public void startActionBarUpdates() {
@@ -123,7 +125,7 @@ public class Visualizer {
                 BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
             } else {
                 Player msgMe = Bukkit.getPlayer(player.getKey());
-                Long time =  (playerInBody.getNextSwapIn(player.getKey()) - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick) ) / 20;
+                Long time =  (playerInBody.getNextSwapIn(player.getKey()) - orchestrator.getCurrentTick() ) / 20;
                 TextComponent msg = Component.text("Swap in: ").color(Colours.Yellow).append(Component.text(time).color(Colours.Red));
                 updateSwapIn(player.getKey(), msg);
                 updateBarPlayer(player.getKey());

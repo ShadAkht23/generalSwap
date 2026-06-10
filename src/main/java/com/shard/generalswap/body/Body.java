@@ -34,12 +34,13 @@ public class Body {
     }
     private Role role;
     private int runnerIdx = 0;
+    private SwapOrchestrator orchestrator;
 
     public static Body SwappedOutBody() {
         return new Body("SWAPPED OUT");
     }
 
-    public Body(PlayerState startingState, String n, Role r) {
+    public Body(PlayerState startingState, String n, Role r, SwapOrchestrator orchestrator) {
         //this.id = id;
         //this.location = baseLocation;
         if (startingState != null) {
@@ -48,6 +49,7 @@ public class Body {
         spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
         name = n;
         role = r;
+        this.orchestrator = orchestrator;
     }
 
    // public String getId() { return id; }
@@ -59,7 +61,7 @@ public class Body {
 
     public long ticksTillNextSwap() {
         if (nextSwapTick != -1)
-            return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
+            return nextSwapTick - orchestrator.getCurrentTick();
         else return -1;
     }
 

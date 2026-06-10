@@ -77,7 +77,7 @@ public class SwapPlugin extends JavaPlugin {
             getLogger().severe("Error registering /gswap command: " + e.getMessage());
             e.printStackTrace();
         }
-        Visualizer visualizer = new Visualizer(inactiveManager, playerInBody);
+        Visualizer visualizer = new Visualizer(inactiveManager, playerInBody, orchestrator);
         gameManager = new GameManager(this, orchestrator, config, inactiveManager, playerInBody, visualizer);
         getServer().getPluginManager().registerEvents(new EventListeners(gameManager, playerInBody, orchestrator, visualizer), this);
         getLogger().info("Swap plugin enabled.");

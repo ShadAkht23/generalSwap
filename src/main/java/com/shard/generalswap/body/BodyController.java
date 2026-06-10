@@ -18,7 +18,7 @@ public final class BodyController {
     private final SwapOrchestrator orchestrator;
 
     public BodyController(PlayerState ps, String name, List<SwapStage> cycle, Role role, SwapOrchestrator orchestrator) {
-        this.body = new Body(ps, name, role);
+        this.body = new Body(ps, name, role, orchestrator);
         this.cycle = cycle;
         this.orchestrator = orchestrator;
     }
