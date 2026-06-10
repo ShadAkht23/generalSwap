@@ -32,13 +32,14 @@ public class GameManager {
     public long startTick = 0;
     boolean started = false;
 
-    public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager) {
+    public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager, PlayerInBody playerInBody, Visualizer visualizer) {
         plugin = p;
         orchestrator = o;
         config = c;
         controllers = new ArrayList<>();
         this.inactiveManager = inactiveManager;
-        visualizer = new Visualizer();
+        this.visualizer = visualizer;
+        this.playerInBody = playerInBody;
     }
 
 
@@ -65,7 +66,7 @@ public class GameManager {
                 players.add(player.getUniqueId());
             }
         }
-        playerInBody = new PlayerInBody(players);
+        playerInBody.initialize(players);
 
         Set<UUID> swappedIn = new HashSet<>();
 

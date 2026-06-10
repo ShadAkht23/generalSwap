@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.player.PlayerSetSpawnEvent;
 import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.BodyController;
+import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.game.Visualizer;
 import com.shard.generalswap.state.PlayerInBody;
@@ -44,16 +45,26 @@ import java.util.UUID;
 
 public class EventListeners implements Listener {
 
-    private SwapPlugin plugin = SwapPlugin.get();
+    private final SwapPlugin plugin = SwapPlugin.get();
+    private final GameManager gameManager;
+    private final PlayerInBody playerInBody;
+    private final SwapOrchestrator swapOrchestrator;
+    private final Visualizer visualizer;
 
+    public EventListeners(GameManager gameManager, PlayerInBody playerInBody, SwapOrchestrator orchestrator, Visualizer visualizer) {
+        this.gameManager = gameManager;
+        this.playerInBody = playerInBody;
+        this.swapOrchestrator = orchestrator;
+        this.visualizer = visualizer;
+    }
 
     // don't allow caged players to take damage
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAnyDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         // Cancel any damage to inactive runners in cages
-        if (!plugin.getGameManager().gameStarted()) return;
-        if (plugin.getGameManager().isSwappedOut(victim.getUniqueId())) {
+        if (!gameManager.gameStarted()) return;
+        if (gameManager.isSwappedOut(victim.getUniqueId())) {
             //event.setCancelled(true);
         }
 
@@ -63,7 +74,7 @@ public class EventListeners implements Listener {
     // handle spawn point tied to body not player
     @EventHandler
     public void onPlayerSpawnPointChange(PlayerSetSpawnEvent event) {
-        if (!plugin.getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
         if (!(event.getCause() == PlayerSetSpawnEvent.Cause.BED ||
             event.getCause() == PlayerSetSpawnEvent.Cause.RESPAWN_ANCHOR ||
@@ -74,7 +85,7 @@ public class EventListeners implements Listener {
         Player p  = event.getPlayer();
         Location loc = event.getLocation();
         if (loc != null) {
-            Body body = plugin.getGameManager().playerInBody.getBody(p.getUniqueId());
+            Body body = playerInBody.getBody(p.getUniqueId());
             body.setSpawn(loc);
             System.out.println("player reset spawn location");
         }
@@ -87,9 +98,9 @@ public class EventListeners implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         // If the player is an inactive runner, prevent movement
-        if (plugin.getGameManager().gameStarted() &&
-                plugin.getGameManager().isPlaying(player.getUniqueId()) &&
-                plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
+        if (gameManager.gameStarted() &&
+                gameManager.isPlaying(player.getUniqueId()) &&
+                gameManager.isSwappedOut(player.getUniqueId())) {
 
             // Check if getTo() is not null to prevent NullPointerException
             if (event.getTo() != null) {
@@ -109,9 +120,8 @@ public class EventListeners implements Listener {
     // save state when disconnect
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent event) {
-        if (!SwapPlugin.get().getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
-        PlayerInBody playerInBody = plugin.getGameManager().playerInBody;
         PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
         Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
         if (body != null && !body.getName().equals("SWAPPED OUT")) {
@@ -133,9 +143,8 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void OnProjectileHit(ProjectileHitEvent event) {
-        if (!SwapPlugin.get().getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
-        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
         if (event.getEntity() instanceof EnderPearl) {
             EnderPearl pearl = (EnderPearl) event.getEntity();
             UUID uuid = playerInBody.getPendingEnderPearlSwap(pearl);
@@ -175,26 +184,24 @@ public class EventListeners implements Listener {
     // if joined after swap and they are swapped in,
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!SwapPlugin.get().getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
 
         Bukkit.getScheduler().runTaskLater(SwapPlugin.get(), () -> {
             UUID pid = event.getPlayer().getUniqueId();
-            PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
             if (!playerInBody.isStateApplied(pid)) {
 
                 Body body = playerInBody.getBody(pid);
                 Player player = event.getPlayer();
-                SwapOrchestrator orchestrator = SwapPlugin.get().getGameManager().getOrchestrator();
                 if (body == null) {
                     return;
                 }
                 if (body.getName().equals("SWAPPED OUT")) {
                     // swap them out
-                    orchestrator.doSwapOut(player);
+                    swapOrchestrator.doSwapOut(player);
                 } else {
                     // swap them in
-                    orchestrator.doSwapIn(player, body);
+                    swapOrchestrator.doSwapIn(player, body);
                 }
             }
         }, 10
@@ -204,7 +211,7 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void onAdvancement(PlayerAdvancementDoneEvent event) {
-        if (!plugin.getGameManager().gameStarted()) {
+        if (!gameManager.gameStarted()) {
             return;
         }
         Component msg = event.message();
@@ -213,11 +220,11 @@ public class EventListeners implements Listener {
         event.message(null);
         if (msg == null)
             return;
-        if (plugin.getGameManager().gameStarted()) {
+        if (gameManager.gameStarted()) {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
+                if (gameManager.isSwappedOut(player.getUniqueId())) {
                     // only add if they are about to get swapped into the player who owns this body??
-                    plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
+                    playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
                 } else {
                     if (msg.toString().length() < 5)
                         return;
@@ -232,22 +239,22 @@ public class EventListeners implements Listener {
         Component msg = event.deathMessage();
         if (msg == null)
             return;
-        if (!plugin.getGameManager().gameStarted()) {
+        if (!gameManager.gameStarted()) {
             return;
         }
 
         // MESSAGE MANAGEMENT
         event.setShowDeathMessages(false);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
-                plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
+            if (gameManager.isSwappedOut(player.getUniqueId())) {
+                playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
             } else {
                 player.sendMessage(msg);
             }
         }
 
         // HUNTER DON't DROP COMPASS
-        if (plugin.getGameManager().isHunterRn(event.getPlayer().getUniqueId())) {
+        if (gameManager.isHunterRn(event.getPlayer().getUniqueId())) {
             event.getDrops().removeIf(stack -> stack.getType() == Material.COMPASS);
         }
 
@@ -255,9 +262,9 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void onHunterDropCompass(PlayerDropItemEvent event) {
-        if (!plugin.getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
-        if (plugin.getGameManager().isHunterRn(event.getPlayer().getUniqueId())) {
+        if (gameManager.isHunterRn(event.getPlayer().getUniqueId())) {
             if (event.getItemDrop().getItemStack().getType() == Material.COMPASS) {
                 event.setCancelled(true);
             }
@@ -266,23 +273,23 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
-        if (!plugin.getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
 
-        if (plugin.getGameManager().isHunterRn(event.getPlayer().getUniqueId())) {
+        if (gameManager.isHunterRn(event.getPlayer().getUniqueId())) {
             event.getPlayer().give(new ItemStack(Material.COMPASS));
         }
     }
 
     @EventHandler
     public void onMoveItemEvent(InventoryClickEvent event) {
-        if (!plugin.getGameManager().gameStarted()) {
+        if (!gameManager.gameStarted()) {
             return;
         }
         if (!(event.getWhoClicked() instanceof Player player))
             return;
 
-        if (!plugin.getGameManager().isHunterRn(player.getUniqueId()))
+        if (!gameManager.isHunterRn(player.getUniqueId()))
             return;
 
         if (event.getView().getType() == InventoryType.PLAYER)
@@ -297,10 +304,10 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!plugin.getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
         Player player = event.getPlayer();
-        if (!plugin.getGameManager().isHunterRn(player.getUniqueId()))
+        if (!gameManager.isHunterRn(player.getUniqueId()))
             return;
 
         if (event.getHand() != EquipmentSlot.HAND)
@@ -313,7 +320,7 @@ public class EventListeners implements Listener {
                 // RESET COMPASS POSITION!
 
                 // runner they're tracking
-                Body body = plugin.getGameManager().playerInBody.getBody(player.getUniqueId());
+                Body body = playerInBody.getBody(player.getUniqueId());
                 BodyController runnerBody = body.pointingTo();
                 Player runner = Bukkit.getPlayer(runnerBody.currentHost());
                 if (runner == null) {
@@ -328,8 +335,7 @@ public class EventListeners implements Listener {
                     // use last known overworld position.
                     Location lastKnown = runnerBody.getBody().getLastKnownOverworldLoc();
                     if (lastKnown == null) {
-                        plugin.getGameManager().getVisualizer()
-                                .trackingUpdateBadDimension(player, runner.getName());
+                        visualizer.trackingUpdateBadDimension(player, runner.getName());
                         return;
                     }
                     runnerLoc = lastKnown;
@@ -340,8 +346,7 @@ public class EventListeners implements Listener {
 
                     Location lastKnown = runnerBody.getBody().getLastKnownNetherLoc();
                     if (lastKnown == null) {
-                        plugin.getGameManager().getVisualizer()
-                                .trackingUpdateBadDimension(player, runner.getName());
+                        visualizer.trackingUpdateBadDimension(player, runner.getName());
                         return;
                     }
                     runnerLoc = lastKnown;
@@ -354,21 +359,19 @@ public class EventListeners implements Listener {
                     setCompassPointNether(compass, compassMeta, runnerLoc);
                     body.setTrackingPos(runnerLoc);
 
-                    plugin.getGameManager().getVisualizer()
-                            .trackingUpdateSuccess(player, runner.getName());
+                    visualizer.trackingUpdateSuccess(player, runner.getName());
                 } else {
                     setCompassPointOverworld(player, compass, compassMeta, runnerLoc);
 
                     body.setTrackingPos(runnerLoc);
-                    plugin.getGameManager().getVisualizer()
-                            .trackingUpdateSuccess(player, runner.getName());
+                    visualizer.trackingUpdateSuccess(player, runner.getName());
                     // TODO might have to use getCompassTarget for the swap.
                 }
 
             }
             if (event.getAction().isLeftClick()) {
                 // switch runner!
-                Body body = plugin.getGameManager().playerInBody.getBody(player.getUniqueId());
+                Body body = playerInBody.getBody(player.getUniqueId());
                 BodyController runnerBody = body.pointingTo();
                 body.incRunnerIdx();
             }
@@ -391,11 +394,11 @@ public class EventListeners implements Listener {
 
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent event) {
-        if (!plugin.getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
-        if (!plugin.getGameManager().isRunnerRn(event.getPlayer().getUniqueId()))
+        if (!gameManager.isRunnerRn(event.getPlayer().getUniqueId()))
             return;
-        Body body = plugin.getGameManager().playerInBody.getBody(event.getPlayer().getUniqueId());
+        Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
         Location from = event.getFrom();
         if (from.getWorld().getEnvironment() == World.Environment.NORMAL) {
             body.setLastKnownOverworldLoc(from);

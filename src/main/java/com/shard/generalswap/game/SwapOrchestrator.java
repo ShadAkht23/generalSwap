@@ -1,12 +1,10 @@
 package com.shard.generalswap.game;
 
-import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.BodyController;
 import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.SwapEvent;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.PlayerStateUtil;
-import com.shard.generalswap.util.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
@@ -17,18 +15,18 @@ import java.util.*;
 public class SwapOrchestrator {
 
     //private final BodyRegistry bodies;
-    private final Scheduler scheduler;
 
     private long currentTick = 0;
 
     private final Map<Long, List<SwapEvent>> queue = new HashMap<>();
 
     private InactiveManager inactiveManager;
+    private PlayerInBody playerInBody;
 
-    public SwapOrchestrator(InactiveManager inactiveManager) {
+    public SwapOrchestrator(InactiveManager inactiveManager, PlayerInBody playerInBody) {
        // this.bodies = bodies;
-        this.scheduler = new Scheduler(SwapPlugin.get());
         this.inactiveManager = inactiveManager;
+        this.playerInBody = playerInBody;
     }
 
     public void reset() {
@@ -60,7 +58,6 @@ public class SwapOrchestrator {
         body.applyPlayerState(player);
         inactiveManager.makeActive(player);
         //player.sendMessage("you have been swapped into body: " + body.getName());
-        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
         playerInBody.emptyPendingChatMsgs(player.getUniqueId());
         playerInBody.appliedState(player.getUniqueId());
 
@@ -68,17 +65,15 @@ public class SwapOrchestrator {
     public void doSwapOut(@NotNull Player player) {
         inactiveManager.makeInactive(player);
         // player.sendMessage("you are swapped out rn");
-        SwapPlugin.get().getGameManager().playerInBody.appliedState(player.getUniqueId());
+        playerInBody.appliedState(player.getUniqueId());
     }
 
     private void executeSwaps(List<SwapEvent> events) {
         // perform the actual player→body swap logic
 
-        GameManager gameManager = SwapPlugin.get().getGameManager();
-
         // event.playerOut() may be null for first swap.
         for (SwapEvent event : events) {
-            if (gameManager.playerInBody.isSwappedOut(event.playerIn())) {
+            if (playerInBody.isSwappedOut(event.playerIn())) {
                 VoiceChannelSwapper.swapIn(event.playerIn());
             }
         }
@@ -90,7 +85,7 @@ public class SwapOrchestrator {
 
             // save that player's state into the body state
             if (event.playerOut() != null) {
-                gameManager.playerInBody.swapOut(event.playerOut());
+                playerInBody.swapOut(event.playerOut());
                 playersInVoid.add(event.playerOut());
                 Player playOut = Bukkit.getPlayer(event.playerOut());
                 if (playOut != null) {
@@ -105,7 +100,7 @@ public class SwapOrchestrator {
             // if player offline, do this stuff in the join event.
             playersInVoid.remove(event.playerIn());
 
-            gameManager.playerInBody.switchBody(event.playerIn(), event.state());
+            playerInBody.switchBody(event.playerIn(), event.state());
 
             Player playIn = Bukkit.getPlayer(event.playerIn());
             if (playIn != null) {
@@ -117,11 +112,11 @@ public class SwapOrchestrator {
                 if (playOut != null) {
                     for (EnderPearl enderPearl : playOut.getEnderPearls()) {
                         //enderPearl.setShooter(null);
-                        gameManager.playerInBody.addPendingPearlSwap(enderPearl, event.playerIn());
+                        playerInBody.addPendingPearlSwap(enderPearl, event.playerIn());
                         System.out.println("adding pending enderpearl swap");
                     }
                 }
-                gameManager.playerInBody.applyStateLater(event.playerIn());
+                playerInBody.applyStateLater(event.playerIn());
             }
         }
 
@@ -139,13 +134,13 @@ public class SwapOrchestrator {
         // players in void contains players who are swapped out but not swapped in.
         for (UUID pid : playersInVoid) {
             Player player = Bukkit.getPlayer(pid);
-            gameManager.playerInBody.swapOut(pid);
+            playerInBody.swapOut(pid);
             VoiceChannelSwapper.swapOut(pid);
             if (player != null) {
                 doSwapOut(player);
             } else {
                 // make them inactive later.
-                gameManager.playerInBody.applyStateLater(pid);
+                playerInBody.applyStateLater(pid);
             }
         }
 
@@ -167,7 +162,7 @@ public class SwapOrchestrator {
             }
         }
         for (Map.Entry<UUID, Long> entry : union.entrySet()) {
-            gameManager.playerInBody.updateNextSwapIn(entry.getKey(), entry.getValue());
+            playerInBody.updateNextSwapIn(entry.getKey(), entry.getValue());
         }
         // callback: for scheduling next swap
         for (SwapEvent event : events) {

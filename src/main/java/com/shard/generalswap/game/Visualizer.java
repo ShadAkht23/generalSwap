@@ -25,8 +25,14 @@ public class Visualizer {
     private BukkitTask actionBarTask;
     private Map<UUID, ActionBarTexts> barTexts;
 
-    public Visualizer() {
+    private InactiveManager inactiveManager;
+    private PlayerInBody playerInBody;
+
+
+    public Visualizer(InactiveManager inactiveManager, PlayerInBody playerInBody) {
         barTexts = new HashMap<>();
+        this.inactiveManager = inactiveManager;
+        this.playerInBody = playerInBody;
     }
 
     public void startActionBarUpdates() {
@@ -40,7 +46,7 @@ public class Visualizer {
 
     public void stopActionBarUpdates() {
         actionBarTask.cancel();
-        for (UUID uuid: SwapPlugin.get().getGameManager().getInactiveManager().getCagedPlayers()) {
+        for (UUID uuid: inactiveManager.getCagedPlayers()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 BukkitCompat.showTitle(player, "", "", 0, Integer.MAX_VALUE, 0);
@@ -106,7 +112,6 @@ public class Visualizer {
 
     private void updateActionBar() {
         if (!SwapPlugin.get().getGameManager().gameStarted()) return;
-        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
         for (Map.Entry<UUID, Body> player : playerInBody.get()) {
             if (player.getValue() == null)
                 continue;
@@ -134,7 +139,7 @@ public class Visualizer {
                 updateBarPlayer(player.getKey());
 
                 //String t = "§6§lYou Are Swapped Out!";
-                msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty()));
+                msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty(), 0, 20, 0));
                 //BukkitCompat.showTitle(msgMe, t, "", 0, Integer.MAX_VALUE, 0);
 
 

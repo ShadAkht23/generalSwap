@@ -21,12 +21,21 @@ public class PlayerInBody {
 
     private final Body swappedOutBody = Body.SwappedOutBody();
 
-    public PlayerInBody(List<UUID> allPlayers) {
+    public PlayerInBody() {
         playerToBody = new HashMap<>();
         stateApplied = new HashMap<>();
         pendingPearlSwap = new HashMap<>();
         pendingChatMsgs = new HashMap<>();
         nextSwapIn = new HashMap<>();
+    }
+
+    public void clear() {
+        playerToBody.clear();
+        stateApplied.clear();
+    }
+
+    public void initialize(List<UUID> allPlayers) {
+        clear();
         for (UUID player : allPlayers) {
             if (player == null) {
                 System.out.println("WHTF??");
@@ -35,11 +44,6 @@ public class PlayerInBody {
             swapOut(player);
             stateApplied.put(player, true);
         }
-    }
-
-    public void clear() {
-        playerToBody.clear();
-        stateApplied.clear();
     }
 
     public void updateNextSwapIn(UUID player, Long delay) {
