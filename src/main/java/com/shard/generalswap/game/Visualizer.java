@@ -1,7 +1,10 @@
 package com.shard.generalswap.game;
 
 import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.body.ActiveBody;
 import com.shard.generalswap.body.Body;
+import com.shard.generalswap.body.BodyAssignment;
+import com.shard.generalswap.body.SwappedOut;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.ActionBarUtil;
 import com.shard.generalswap.util.BukkitCompat;
@@ -106,31 +109,35 @@ public class Visualizer {
     }
 
     private void updateActionBar() {
-        for (Map.Entry<UUID, Body> player : playerInBody.get()) {
+        for (Map.Entry<UUID, BodyAssignment> player : playerInBody.get()) {
             if (player.getValue() == null)
                 continue;
-            if (!player.getValue().getName().equals("SWAPPED OUT")) {
-                long timeLeft = player.getValue().ticksTillNextSwap(orchestrator.getCurrentTick());
-                TextComponent msg;
-                Player msgMe = Bukkit.getPlayer(player.getKey());
-                if (timeLeft == -1) {
-                    msg = Component.text("No Swap").color(Colours.Yellow);
-                } else {
-                    msg = Component.text("Swap in: ").color(Colours.Yellow)
-                                    .append(Component.text(Math.max(0, timeLeft) / 20).color(Colours.Red));
+            switch (player.getValue()) {
+                case ActiveBody(Body body) -> {
+                    long timeLeft = body.ticksTillNextSwap(orchestrator.getCurrentTick());
+                    TextComponent msg;
+                    Player msgMe = Bukkit.getPlayer(player.getKey());
+                    if (timeLeft == -1) {
+                        msg = Component.text("No Swap").color(Colours.Yellow);
+                    } else {
+                        msg = Component.text("Swap in: ").color(Colours.Yellow)
+                                .append(Component.text(Math.max(0, timeLeft) / 20).color(Colours.Red));
+                        updateSwapIn(player.getKey(), msg);
+                        updateBarPlayer(player.getKey());
+                        //ActionBarUtil.sendActionBar(msgMe, msg);
+                    }
+                    BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
+                }
+                case SwappedOut ignored -> {
+                    Player msgMe = Bukkit.getPlayer(player.getKey());
+                    Long time =  (playerInBody.getNextSwapIn(player.getKey()) - orchestrator.getCurrentTick() ) / 20;
+                    TextComponent msg = Component.text("Swap in: ").color(Colours.Yellow).append(Component.text(time).color(Colours.Red));
                     updateSwapIn(player.getKey(), msg);
                     updateBarPlayer(player.getKey());
-                    //ActionBarUtil.sendActionBar(msgMe, msg);
+                    if (msgMe != null)  msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty(), 0, 20, 0));
                 }
-                BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
-            } else {
-                Player msgMe = Bukkit.getPlayer(player.getKey());
-                Long time =  (playerInBody.getNextSwapIn(player.getKey()) - orchestrator.getCurrentTick() ) / 20;
-                TextComponent msg = Component.text("Swap in: ").color(Colours.Yellow).append(Component.text(time).color(Colours.Red));
-                updateSwapIn(player.getKey(), msg);
-                updateBarPlayer(player.getKey());
-                if (msgMe != null)  msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty(), 0, 20, 0));
             }
+
         }
     }
 

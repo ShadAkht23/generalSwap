@@ -29,15 +29,8 @@ public class Body {
     private Location spawn;
     public long nextSwapTick = 0;
 
-    private Body(String n) {
-        name = n;
-    }
     private Role role;
     private int runnerIdx = 0;
-
-    public static Body SwappedOutBody() {
-        return new Body("SWAPPED OUT");
-    }
 
     public Body(PlayerState startingState, String n, Role r) {
         //this.id = id;
@@ -49,9 +42,6 @@ public class Body {
         name = n;
         role = r;
     }
-
-   // public String getId() { return id; }
-    //public Location getLocation() { return location; }
 
     public void setNextSwapTick(long s) {
         nextSwapTick = s;

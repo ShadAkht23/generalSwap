@@ -1,6 +1,9 @@
 package com.shard.generalswap.state;
 
+import com.shard.generalswap.body.ActiveBody;
 import com.shard.generalswap.body.Body;
+import com.shard.generalswap.body.BodyAssignment;
+import com.shard.generalswap.body.SwappedOut;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EnderPearl;
@@ -13,12 +16,10 @@ import java.util.*;
 // represents which body the player SHOULD be in.
 // also keeps track of whether each player has actually been swapped in or not.
 public class PlayerInBody {
-    private final Map<UUID, Body> playerToBody;
+    private final Map<UUID, BodyAssignment> playerToBody;
     private final Map<UUID, Boolean> stateApplied;
     private final Map<EnderPearl, UUID> pendingPearlSwap;
     private final Map<UUID, Long> nextSwapIn;
-
-    private final Body swappedOutBody = Body.SwappedOutBody();
 
     public PlayerInBody() {
         playerToBody = new HashMap<>();
@@ -72,25 +73,21 @@ public class PlayerInBody {
 
     public boolean isStateApplied(UUID player) {return stateApplied.get(player); }
 
-    public Set<Map.Entry<UUID, Body>> get() {
+    public Set<Map.Entry<UUID, BodyAssignment>> get() {
         return playerToBody.entrySet();
     }
 
     public void switchBody(UUID player, Body body) {
-        playerToBody.put(player, body);
+        playerToBody.put(player, new ActiveBody(body));
     }
 
     public void swapOut(UUID player) {
-        playerToBody.put(player, swappedOutBody);
+        playerToBody.put(player, new SwappedOut());
     }
 
 
     public boolean isSwappedOut(UUID player) {
-        Body body = playerToBody.get(player);
-        if (body != null)
-            return playerToBody.get(player).getName().equals("SWAPPED OUT");
-        else
-            return false;
+        return playerToBody.get(player) instanceof SwappedOut;
     }
 
     public boolean isSwappedIn(UUID player) {
@@ -98,6 +95,8 @@ public class PlayerInBody {
     }
 
     public Body getBody(UUID player) {
-        return playerToBody.get(player);
+        BodyAssignment assignment = playerToBody.get(player);
+        if (assignment instanceof ActiveBody(Body body)) return body;
+        return null;
     }
 }
