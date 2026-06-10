@@ -5,9 +5,11 @@ import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.InactiveManager;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.game.Visualizer;
+import com.shard.generalswap.listeners.ChatMsgListeners;
 import com.shard.generalswap.listeners.CompassListeners;
 import com.shard.generalswap.listeners.EnderPearlListeners;
 import com.shard.generalswap.listeners.EventListeners;
+import com.shard.generalswap.state.PendingChatMsgs;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.ConfigLoader;
 import com.shard.generalswap.util.Configuration;
@@ -62,8 +64,11 @@ public class SwapPlugin extends JavaPlugin {
             return;
         }
 
-        InactiveManager inactiveManager = new InactiveManager();
+
         PlayerInBody playerInBody = new PlayerInBody();
+        PendingChatMsgs pendingChatMsgs = new PendingChatMsgs();
+
+        InactiveManager inactiveManager = new InactiveManager(pendingChatMsgs);
         SwapOrchestrator orchestrator = new SwapOrchestrator(inactiveManager, playerInBody);
 
         StartCommand startCommand = new StartCommand(this);
@@ -85,6 +90,7 @@ public class SwapPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EventListeners(gameManager, playerInBody, orchestrator), this);
         getServer().getPluginManager().registerEvents(new EnderPearlListeners(gameManager, playerInBody), this);
         getServer().getPluginManager().registerEvents(new CompassListeners(gameManager, playerInBody, visualizer), this);
+        getServer().getPluginManager().registerEvents(new ChatMsgListeners(gameManager, pendingChatMsgs), this);
         getLogger().info("Swap plugin enabled.");
     }
 

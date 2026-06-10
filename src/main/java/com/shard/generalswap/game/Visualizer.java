@@ -110,7 +110,7 @@ public class Visualizer {
             if (player.getValue() == null)
                 continue;
             if (!player.getValue().getName().equals("SWAPPED OUT")) {
-                long timeLeft = player.getValue().ticksTillNextSwap();
+                long timeLeft = player.getValue().ticksTillNextSwap(orchestrator.getCurrentTick());
                 TextComponent msg;
                 Player msgMe = Bukkit.getPlayer(player.getKey());
                 if (timeLeft == -1) {

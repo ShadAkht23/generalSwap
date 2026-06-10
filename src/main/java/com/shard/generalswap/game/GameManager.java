@@ -29,7 +29,6 @@ public class GameManager {
     private BukkitTask curTickTask;
 
     public PlayerInBody playerInBody;
-    public long startTick = 0;
     boolean started = false;
 
     public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager, PlayerInBody playerInBody, Visualizer visualizer) {
@@ -96,7 +95,6 @@ public class GameManager {
             }
         }
 
-        startTick = Bukkit.getCurrentTick() + 1;
         curTickTask = Bukkit.getScheduler().runTaskTimer(plugin, orchestrator::tick, 1L, 1L);
         visualizer.startActionBarUpdates();
     }
@@ -121,16 +119,8 @@ public class GameManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             inactiveManager.makeActive(player);
         }
-        getOrchestrator().reset();
+        orchestrator.reset();
     }
-
-    public SwapOrchestrator getOrchestrator() {
-        return orchestrator;
-    }
-
-    public Visualizer getVisualizer() {return visualizer;}
-
-    public InactiveManager getInactiveManager() {return inactiveManager;}
 
     public List<Body> getHunters() {
         return controllers.stream()

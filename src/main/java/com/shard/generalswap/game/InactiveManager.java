@@ -1,6 +1,7 @@
 package com.shard.generalswap.game;
 
 import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.state.PendingChatMsgs;
 import com.shard.generalswap.util.BukkitCompat;
 import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.*;
@@ -16,9 +17,11 @@ import java.util.*;
 public class InactiveManager {
 
     private final Set<UUID> cagedPlayers;
+    private final  PendingChatMsgs pendingChatMsgs;
 
-    public InactiveManager() {
+    public InactiveManager(PendingChatMsgs pendingChatMsgs) {
         cagedPlayers = new HashSet<>();
+        this.pendingChatMsgs = pendingChatMsgs;
     }
     public void makeInactive(@NotNull Player player) {
         applyInactiveEffects(player);
@@ -38,7 +41,7 @@ public class InactiveManager {
 
         player.setGameMode(GameMode.SURVIVAL);
         makeVisible(player);
-
+        pendingChatMsgs.emptyPendingChatMsgs(player.getUniqueId());
     }
 
     public void makeVisible(@NotNull Player player) {

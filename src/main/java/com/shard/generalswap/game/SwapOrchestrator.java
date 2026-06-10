@@ -59,7 +59,6 @@ public class SwapOrchestrator {
         body.applyPlayerState(player);
         inactiveManager.makeActive(player);
         //player.sendMessage("you have been swapped into body: " + body.getName());
-        playerInBody.emptyPendingChatMsgs(player.getUniqueId());
         playerInBody.appliedState(player.getUniqueId());
 
     }

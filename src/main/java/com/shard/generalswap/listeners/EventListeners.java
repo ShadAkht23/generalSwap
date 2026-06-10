@@ -119,7 +119,6 @@ public class EventListeners implements Listener {
         }
     }
 
-
     // if joined after swap and they are swapped in,
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -147,52 +146,6 @@ public class EventListeners implements Listener {
         );
     }
 
-
-    @EventHandler
-    public void onAdvancement(PlayerAdvancementDoneEvent event) {
-        if (!gameManager.gameStarted()) {
-            return;
-        }
-        Component msg = event.message();
-        Component empty = Component.empty();
-        //Component notEmpty = Component.empty().content("received advancement");
-        event.message(null);
-        if (msg == null)
-            return;
-        if (gameManager.gameStarted()) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (gameManager.isSwappedOut(player.getUniqueId())) {
-                    // only add if they are about to get swapped into the player who owns this body??
-                    playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
-                } else {
-                    if (msg.toString().length() < 5)
-                        return;
-                    player.sendMessage(msg);
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        Component msg = event.deathMessage();
-        if (msg == null)
-            return;
-        if (!gameManager.gameStarted()) {
-            return;
-        }
-
-        // MESSAGE MANAGEMENT
-        event.setShowDeathMessages(false);
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameManager.isSwappedOut(player.getUniqueId())) {
-                playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
-            } else {
-                player.sendMessage(msg);
-            }
-        }
-
-    }
 
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent event) {
