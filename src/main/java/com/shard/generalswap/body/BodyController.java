@@ -1,10 +1,8 @@
 package com.shard.generalswap.body;
 
-import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerState;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +21,10 @@ public final class BodyController {
         this.body = new Body(ps, name, role);
         this.cycle = cycle;
         this.orchestrator = orchestrator;
-        //this.playerRegistry = pr;
     }
 
     public void start() {
-        orchestrator.scheduleSwap(cycle.get(0).pid(), null, body, this, 1);
+        orchestrator.scheduleSwap(cycle.getFirst().pid(), null, body, this, 1);
     }
 
     public UUID currentHost() {

@@ -7,7 +7,6 @@ import com.shard.generalswap.util.ActionBarUtil;
 import com.shard.generalswap.util.BukkitCompat;
 import com.shard.generalswap.util.Colours;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -15,7 +14,6 @@ import net.kyori.adventure.text.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static net.kyori.adventure.title.Title.title;
@@ -23,10 +21,10 @@ import static net.kyori.adventure.title.Title.title;
 public class Visualizer {
 
     private BukkitTask actionBarTask;
-    private Map<UUID, ActionBarTexts> barTexts;
+    private final Map<UUID, ActionBarTexts> barTexts;
 
-    private InactiveManager inactiveManager;
-    private PlayerInBody playerInBody;
+    private final InactiveManager inactiveManager;
+    private final PlayerInBody playerInBody;
 
 
     public Visualizer(InactiveManager inactiveManager, PlayerInBody playerInBody) {
@@ -36,12 +34,7 @@ public class Visualizer {
     }
 
     public void startActionBarUpdates() {
-        actionBarTask = Bukkit.getScheduler().runTaskTimer(SwapPlugin.get(), () -> {
-            if (!SwapPlugin.get().getGameManager().gameStarted()) {
-                return;
-            }
-            updateActionBar();
-        }, 3L, 20);
+        actionBarTask = Bukkit.getScheduler().runTaskTimer(SwapPlugin.get(), this::updateActionBar, 3L, 20);
     }
 
     public void stopActionBarUpdates() {
@@ -111,7 +104,6 @@ public class Visualizer {
     }
 
     private void updateActionBar() {
-        if (!SwapPlugin.get().getGameManager().gameStarted()) return;
         for (Map.Entry<UUID, Body> player : playerInBody.get()) {
             if (player.getValue() == null)
                 continue;
@@ -131,18 +123,11 @@ public class Visualizer {
                 BukkitCompat.showTitle(msgMe, "", "", 0, Integer.MAX_VALUE, 0);
             } else {
                 Player msgMe = Bukkit.getPlayer(player.getKey());
-                // return nextSwapTick - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick);
                 Long time =  (playerInBody.getNextSwapIn(player.getKey()) - (Bukkit.getCurrentTick() - SwapPlugin.get().getGameManager().startTick) ) / 20;
                 TextComponent msg = Component.text("Swap in: ").color(Colours.Yellow).append(Component.text(time).color(Colours.Red));
-                //ActionBarUtil.sendActionBar(msgMe, msg);
                 updateSwapIn(player.getKey(), msg);
                 updateBarPlayer(player.getKey());
-
-                //String t = "§6§lYou Are Swapped Out!";
-                msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty(), 0, 20, 0));
-                //BukkitCompat.showTitle(msgMe, t, "", 0, Integer.MAX_VALUE, 0);
-
-
+                if (msgMe != null)  msgMe.showTitle(title(Component.text("You are Swapped Out!").color(Colours.Gold), Component.empty(), 0, 20, 0));
             }
         }
     }

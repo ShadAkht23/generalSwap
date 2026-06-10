@@ -1,13 +1,10 @@
 package com.shard.generalswap.game;
 
 import com.shard.generalswap.SwapPlugin;
-import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.BukkitCompat;
 import com.shard.generalswap.util.PlayerStateUtil;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -25,14 +22,11 @@ public class InactiveManager {
     }
     public void makeInactive(@NotNull Player player) {
         applyInactiveEffects(player);
-        //createOrEnsureSharedCage(player.getWorld());
-
 
         try { player.setAllowFlight(true); } catch (Exception ignored) {}
         try { player.setFlying(false); } catch (Exception ignored) {}
 
         player.teleport(new Location(player.getWorld(), 0, 50000, 0));
-        //teleportToSharedCage(player);
     }
 
     public Set<UUID> getCagedPlayers() {
@@ -72,7 +66,6 @@ public class InactiveManager {
 
         player.setHealth(Objects.requireNonNull(player.getAttribute(Attribute.MAX_HEALTH)).getBaseValue());
         player.setFoodLevel(20);
-
 
 
         PotionEffectType blindness = BukkitCompat.resolvePotionEffect("blindness");

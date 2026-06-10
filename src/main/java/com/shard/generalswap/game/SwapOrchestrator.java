@@ -14,17 +14,14 @@ import java.util.*;
 
 public class SwapOrchestrator {
 
-    //private final BodyRegistry bodies;
-
     private long currentTick = 0;
 
     private final Map<Long, List<SwapEvent>> queue = new HashMap<>();
 
-    private InactiveManager inactiveManager;
-    private PlayerInBody playerInBody;
+    private final InactiveManager inactiveManager;
+    private final PlayerInBody playerInBody;
 
     public SwapOrchestrator(InactiveManager inactiveManager, PlayerInBody playerInBody) {
-       // this.bodies = bodies;
         this.inactiveManager = inactiveManager;
         this.playerInBody = playerInBody;
     }

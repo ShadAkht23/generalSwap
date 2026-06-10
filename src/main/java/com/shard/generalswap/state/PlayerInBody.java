@@ -32,6 +32,9 @@ public class PlayerInBody {
     public void clear() {
         playerToBody.clear();
         stateApplied.clear();
+        pendingPearlSwap.clear();
+        pendingChatMsgs.clear();
+        nextSwapIn.clear();
     }
 
     public void initialize(List<UUID> allPlayers) {
@@ -39,7 +42,6 @@ public class PlayerInBody {
         for (UUID player : allPlayers) {
             if (player == null) {
                 System.out.println("WHTF??");
-
             }
             swapOut(player);
             stateApplied.put(player, true);
