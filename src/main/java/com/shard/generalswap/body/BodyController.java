@@ -53,7 +53,7 @@ public final class BodyController {
         System.out.println("next swap is at " + body.nextSwapTick + " currentStage ="  + index);
         for (Map.Entry<UUID, Long> entry : tickMap.entrySet()) {
 
-            System.out.println("Player " + Bukkit.getPlayer(entry.getKey()).getName() + "'s next swap is at " + entry.getValue());
+            //System.out.println("Player " + Bukkit.getPlayer(entry.getKey()).getName() + "'s next swap is at " + entry.getValue());
         }
         return tickMap;
     }

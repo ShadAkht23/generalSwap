@@ -45,7 +45,6 @@ import java.util.UUID;
 
 public class EventListeners implements Listener {
 
-    private final SwapPlugin plugin = SwapPlugin.get();
     private final GameManager gameManager;
     private final PlayerInBody playerInBody;
     private final SwapOrchestrator swapOrchestrator;
@@ -102,15 +101,12 @@ public class EventListeners implements Listener {
                 gameManager.isPlaying(player.getUniqueId()) &&
                 gameManager.isSwappedOut(player.getUniqueId())) {
 
-            // Check if getTo() is not null to prevent NullPointerException
-            if (event.getTo() != null) {
-                // Only cancel if the player is actually trying to move (not just looking around)
-                if (event.getFrom().getX() != event.getTo().getX() ||
-                        event.getFrom().getY() != event.getTo().getY() ||
-                        event.getFrom().getZ() != event.getTo().getZ()) {
+            // Only cancel if the player is actually trying to move (not just looking around)
+            if (event.getFrom().getX() != event.getTo().getX() ||
+                    event.getFrom().getY() != event.getTo().getY() ||
+                    event.getFrom().getZ() != event.getTo().getZ()) {
 
-                    event.setCancelled(true);
-                }
+                event.setCancelled(true);
             }
         }
     }
@@ -129,55 +125,9 @@ public class EventListeners implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
-            Player player = event.getPlayer();
-            if (player.hasMetadata("cancel_next_pearl")) {
-                event.setCancelled(true);
-                player.removeMetadata("cancel_next_pearl", plugin);
-            }
 
-        }
-    }
 
-    @EventHandler
-    public void OnProjectileHit(ProjectileHitEvent event) {
-        if (!gameManager.gameStarted())
-            return;
-        if (event.getEntity() instanceof EnderPearl) {
-            EnderPearl pearl = (EnderPearl) event.getEntity();
-            UUID uuid = playerInBody.getPendingEnderPearlSwap(pearl);
-            if (uuid != null) {
-                Player player = Bukkit.getPlayer(uuid);
-                if (player != null) {
-                    // they joined back. set them to be shooter and let the event do its thing
-                    pearl.setShooter(player);
-                    playerInBody.pearlNotPending(pearl);
-                } else {
-                    // still offline.
-                    // get location of pearl landing:
-                    Location loc = null;
-                    Block block = event.getHitBlock();
-                    if (block != null) {
-                        loc = block.getLocation();
-                    }
 
-                    Entity entity = event.getHitEntity();
-                    if (entity != null) {
-                        loc = entity.getLocation();
-                    }
-                    if (loc == null) {
-                        System.err.println("Couldn't resolve pearl landing position");
-                    }
-                    Body body = playerInBody.getBody(uuid);
-                    body.setPearlLand(loc);
-                    ((Player)pearl.getShooter()).setMetadata("cancel_next_pearl", new FixedMetadataValue(plugin, true));
-                    System.out.println("cancelling projectilie event");
-                }
-            }
-        }
-    }
 
 
 
