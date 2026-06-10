@@ -5,6 +5,7 @@ import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.InactiveManager;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.game.Visualizer;
+import com.shard.generalswap.listeners.CompassListeners;
 import com.shard.generalswap.listeners.EnderPearlListeners;
 import com.shard.generalswap.listeners.EventListeners;
 import com.shard.generalswap.state.PlayerInBody;
@@ -81,8 +82,9 @@ public class SwapPlugin extends JavaPlugin {
         Visualizer visualizer = new Visualizer(inactiveManager, playerInBody, orchestrator);
         gameManager = new GameManager(this, orchestrator, config, inactiveManager, playerInBody, visualizer);
 
-        getServer().getPluginManager().registerEvents(new EventListeners(gameManager, playerInBody, orchestrator, visualizer), this);
+        getServer().getPluginManager().registerEvents(new EventListeners(gameManager, playerInBody, orchestrator), this);
         getServer().getPluginManager().registerEvents(new EnderPearlListeners(gameManager, playerInBody), this);
+        getServer().getPluginManager().registerEvents(new CompassListeners(gameManager, playerInBody, visualizer), this);
         getLogger().info("Swap plugin enabled.");
     }
 
