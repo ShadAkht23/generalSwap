@@ -1,7 +1,6 @@
 package com.shard.generalswap.listeners;
 
-import com.shard.generalswap.body.Body;
-import com.shard.generalswap.body.BodyController;
+import com.shard.generalswap.body.*;
 import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.Visualizer;
 import com.shard.generalswap.state.PlayerInBody;

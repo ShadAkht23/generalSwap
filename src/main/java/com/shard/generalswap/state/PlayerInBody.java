@@ -85,7 +85,6 @@ public class PlayerInBody {
         playerToBody.put(player, new SwappedOut());
     }
 
-
     public boolean isSwappedOut(UUID player) {
         return playerToBody.get(player) instanceof SwappedOut;
     }
@@ -94,9 +93,14 @@ public class PlayerInBody {
         return !isSwappedOut(player);
     }
 
+    public BodyAssignment getBodyAssignment(UUID player) {
+        return playerToBody.get(player);
+    }
+    
     public Body getBody(UUID player) {
-        BodyAssignment assignment = playerToBody.get(player);
-        if (assignment instanceof ActiveBody(Body body)) return body;
-        return null;
+        return switch (playerToBody.get(player)) {
+            case ActiveBody(Body body) -> body;
+            case SwappedOut swappedOut -> throw new IllegalStateException("HOW is the player swapped out???");
+        };
     }
 }

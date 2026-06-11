@@ -21,15 +21,16 @@ import java.io.File;
 /*
 TODO
     immediate start so other runner doesn't know the spawn
-    Hiding Chat
     Timer for Swapped out players _/
-    manhunt compass
+    manhunt compass _/
     does ender chest work? respawn anchor? pet owning?
     cage without visible bedrock? _/
     handle end portal thing
     update hostile mob targetting
     fix endermen mob targetting
-
+    pausing,restarting
+    roles abstraction
+    fix recursive advancments
 
 
 
@@ -85,7 +86,7 @@ public class SwapPlugin extends JavaPlugin {
             e.printStackTrace();
         }
         Visualizer visualizer = new Visualizer(inactiveManager, playerInBody, orchestrator);
-        gameManager = new GameManager(this, orchestrator, config, inactiveManager, playerInBody, visualizer);
+        gameManager = new GameManager(this, orchestrator, config, inactiveManager, playerInBody, visualizer, pendingChatMsgs);
 
         getServer().getPluginManager().registerEvents(new EventListeners(gameManager, playerInBody, orchestrator), this);
         getServer().getPluginManager().registerEvents(new EnderPearlListeners(gameManager, playerInBody), this);

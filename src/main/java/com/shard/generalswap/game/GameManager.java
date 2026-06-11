@@ -4,6 +4,7 @@ import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.BodyController;
 import com.shard.generalswap.body.SwapStage;
+import com.shard.generalswap.state.PendingChatMsgs;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.BodyConfig;
 import com.shard.generalswap.util.ConfigSwapStage;
@@ -26,12 +27,13 @@ public class GameManager {
     private final Configuration config;
     private final InactiveManager inactiveManager;
     private final Visualizer visualizer;
+    private final PendingChatMsgs pendingChatMsgs;
     private BukkitTask curTickTask;
 
     public PlayerInBody playerInBody;
     boolean started = false;
 
-    public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager, PlayerInBody playerInBody, Visualizer visualizer) {
+    public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager, PlayerInBody playerInBody, Visualizer visualizer, PendingChatMsgs pendingChatMsgs) {
         plugin = p;
         orchestrator = o;
         config = c;
@@ -39,6 +41,7 @@ public class GameManager {
         this.inactiveManager = inactiveManager;
         this.visualizer = visualizer;
         this.playerInBody = playerInBody;
+        this.pendingChatMsgs = pendingChatMsgs;
     }
 
 
@@ -120,6 +123,7 @@ public class GameManager {
             inactiveManager.makeActive(player);
         }
         orchestrator.reset();
+        pendingChatMsgs.clear();
     }
 
     public List<Body> getHunters() {

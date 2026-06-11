@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 
 public class ChatMsgListeners implements Listener {
     private final GameManager gameManager;
-    PendingChatMsgs pendingChatMsgs;
+    private final PendingChatMsgs pendingChatMsgs;
 
     public ChatMsgListeners(GameManager gameManager, PendingChatMsgs pendingChatMsgs) {
         this.gameManager = gameManager;
@@ -48,16 +48,14 @@ public class ChatMsgListeners implements Listener {
         event.message(null);
         if (msg == null)
             return;
-        if (gameManager.gameStarted()) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (gameManager.isSwappedOut(player.getUniqueId())) {
-                    // only add if they are about to get swapped into the player who owns this body??
-                    pendingChatMsgs.appendPendingChatMsg(player.getUniqueId(), msg);
-                } else {
-                    if (msg.toString().length() < 5)
-                        return;
-                    player.sendMessage(msg);
-                }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (gameManager.isSwappedOut(player.getUniqueId())) {
+                // only add if they are about to get swapped into the player who owns this body??
+                pendingChatMsgs.appendPendingChatMsg(player.getUniqueId(), msg);
+            } else {
+                if (msg.toString().length() < 5)
+                    return;
+                player.sendMessage(msg);
             }
         }
     }

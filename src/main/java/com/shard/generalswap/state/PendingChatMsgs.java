@@ -18,13 +18,7 @@ public class PendingChatMsgs {
     }
 
     public void appendPendingChatMsg(UUID player, Component msg) {
-        if (pendingChatMsgs.containsKey(player)) {
-            pendingChatMsgs.get(player).add(msg);
-        } else {
-            List<Component> list = new ArrayList<>();
-            list.add(msg);
-            pendingChatMsgs.put(player, list);
-        }
+        pendingChatMsgs.computeIfAbsent(player, k -> new ArrayList<>()).add(msg);
     }
 
     public void emptyPendingChatMsgs(UUID uuid) {

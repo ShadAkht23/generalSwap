@@ -2,8 +2,10 @@ package com.shard.generalswap.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerSetSpawnEvent;
 import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.body.ActiveBody;
 import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.BodyController;
+import com.shard.generalswap.body.SwappedOut;
 import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.game.Visualizer;
@@ -112,10 +114,13 @@ public class EventListeners implements Listener {
     public void onPlayerDisconnect(PlayerQuitEvent event) {
         if (!gameManager.gameStarted())
             return;
-        PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
-        Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
-        if (body != null && !body.getName().equals("SWAPPED OUT")) {
-            body.set(playerState);
+
+        switch (playerInBody.getBodyAssignment(event.getPlayer().getUniqueId())) {
+            case ActiveBody(Body body) -> {
+                PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
+                body.set(playerState);
+            }
+            default -> {}
         }
     }
 
@@ -128,18 +133,13 @@ public class EventListeners implements Listener {
         Bukkit.getScheduler().runTaskLater(SwapPlugin.get(), () -> {
             UUID pid = event.getPlayer().getUniqueId();
             if (!playerInBody.isStateApplied(pid)) {
-
-                Body body = playerInBody.getBody(pid);
                 Player player = event.getPlayer();
-                if (body == null) {
-                    return;
-                }
-                if (body.getName().equals("SWAPPED OUT")) {
-                    // swap them out
-                    swapOrchestrator.doSwapOut(player);
-                } else {
-                    // swap them in
-                    swapOrchestrator.doSwapIn(player, body);
+                switch (playerInBody.getBodyAssignment(pid)) {
+                    case ActiveBody(Body body) -> {
+                        swapOrchestrator.doSwapIn(player, body);
+                    }
+                    case SwappedOut i ->
+                        swapOrchestrator.doSwapOut(player);
                 }
             }
         }, 10
