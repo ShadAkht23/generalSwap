@@ -4,34 +4,33 @@ import com.shard.generalswap.commands.StartCommand;
 import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.InactiveManager;
 import com.shard.generalswap.game.SwapOrchestrator;
+import com.shard.generalswap.game.Visualizer;
+import com.shard.generalswap.listeners.ChatMsgListeners;
+import com.shard.generalswap.listeners.CompassListeners;
+import com.shard.generalswap.listeners.EnderPearlListeners;
 import com.shard.generalswap.listeners.EventListeners;
+import com.shard.generalswap.state.PendingChatMsgs;
+import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.util.ConfigLoader;
-import com.shard.generalswap.util.ConfigSwapStage;
 import com.shard.generalswap.util.Configuration;
-import de.maxhenkel.voicechat.api.BukkitVoicechatService;
 import de.maxhenkel.voicechat.api.VoicechatApi;
-import de.maxhenkel.voicechat.api.VoicechatServerApi;
-import de.maxhenkel.voicechat.api.packets.MicrophonePacket;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
 
 /*
 TODO
     immediate start so other runner doesn't know the spawn
-    Hiding Chat
     Timer for Swapped out players _/
-    manhunt compass
+    manhunt compass _/
     does ender chest work? respawn anchor? pet owning?
-    cage without visible bedrock?
+    cage without visible bedrock? _/
     handle end portal thing
     update hostile mob targetting
     fix endermen mob targetting
-
+    pausing,restarting
+    roles abstraction
+    fix recursive advancments
 
 
 
@@ -46,8 +45,6 @@ public class SwapPlugin extends JavaPlugin {
 
     private GameManager gameManager;
 
-    private Plugin manhuntPlus;
-
     private VoicechatApi voicechatServerApi;
 
     public void start() {
@@ -58,38 +55,22 @@ public class SwapPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        if (Bukkit.getPluginManager().getPlugin("ManhuntPlus") != null) {
-            manhuntPlus = Bukkit.getPluginManager().getPlugin("ManhuntPlus");
-            getLogger().info("Successfully hooked into Manhunt+!");
-        }
-
-        BukkitVoicechatService service = getServer().getServicesManager().load(BukkitVoicechatService.class);
-        if (service != null) {
-            service.registerPlugin(new VoiceChatPlugin(this));
-            System.out.println("Successfully registered voice chat plugin");
-        }
-
-        getLogger().info("Swap plugin enabled.");
-
-
 
         // Load config
-        Map<String, List<ConfigSwapStage>> bodies;
-        List<String> players;
         Configuration config;
         try {
             config = ConfigLoader.loadBodies(new File(getDataFolder(), "config.conf"));
-            bodies = config.bodies();
-            players = config.players();
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
 
 
-        InactiveManager inactiveManager = new InactiveManager();
-        SwapOrchestrator orchestrator = new SwapOrchestrator(inactiveManager);
+        PlayerInBody playerInBody = new PlayerInBody();
+        PendingChatMsgs pendingChatMsgs = new PendingChatMsgs();
 
+        InactiveManager inactiveManager = new InactiveManager(pendingChatMsgs);
+        SwapOrchestrator orchestrator = new SwapOrchestrator(inactiveManager, playerInBody);
 
         StartCommand startCommand = new StartCommand(this);
         try {
@@ -104,14 +85,19 @@ public class SwapPlugin extends JavaPlugin {
             getLogger().severe("Error registering /gswap command: " + e.getMessage());
             e.printStackTrace();
         }
-        getServer().getPluginManager().registerEvents(new EventListeners(), this);
-        gameManager = new GameManager(this, orchestrator, config, inactiveManager);
+        Visualizer visualizer = new Visualizer(inactiveManager, playerInBody, orchestrator);
+        gameManager = new GameManager(this, orchestrator, config, inactiveManager, playerInBody, visualizer, pendingChatMsgs);
+
+        getServer().getPluginManager().registerEvents(new EventListeners(gameManager, playerInBody, orchestrator), this);
+        getServer().getPluginManager().registerEvents(new EnderPearlListeners(gameManager, playerInBody), this);
+        getServer().getPluginManager().registerEvents(new CompassListeners(gameManager, playerInBody, visualizer), this);
+        getServer().getPluginManager().registerEvents(new ChatMsgListeners(gameManager, pendingChatMsgs), this);
+        getLogger().info("Swap plugin enabled.");
     }
 
     public void setVoicechatServerApi(VoicechatApi vcplugin) {
         voicechatServerApi = vcplugin;
     }
-
 
     public static SwapPlugin get() { return instance; }
     public GameManager getGameManager() {return gameManager; }

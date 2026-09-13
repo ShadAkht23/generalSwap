@@ -1,10 +1,8 @@
 package com.shard.generalswap.body;
 
-import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.game.SwapOrchestrator;
 import com.shard.generalswap.state.PlayerState;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,24 +13,23 @@ import java.util.UUID;
 public final class BodyController {
     private final Body body;
     private final List<SwapStage> cycle;
-    //private final PlayerRegistry playerRegistry;
     private int index = 0;
-    private boolean firstSwap = true;
+    private int oldIndex = 0;
     private final SwapOrchestrator orchestrator;
 
-    public BodyController(PlayerState ps, String name, List<SwapStage> cycle, SwapOrchestrator orchestrator) {
-        this.body = new Body(ps, name);
+    public BodyController(PlayerState ps, String name, List<SwapStage> cycle, Role role, SwapOrchestrator orchestrator) {
+        this.body = new Body(ps, name, role);
         this.cycle = cycle;
         this.orchestrator = orchestrator;
-        //this.playerRegistry = pr;
     }
 
     public void start() {
-        orchestrator.scheduleSwap(cycle.get(0).pid(), null, body, this, 1);
+        orchestrator.scheduleSwap(cycle.getFirst().pid(), null, body, this, 1);
     }
 
     public UUID currentHost() {
-        return cycle.get(index).pid();
+        //int actualIndex = ((index - 1 + cycle.size()) % cycle.size());
+        return cycle.get(oldIndex).pid();
     }
 
     public Map<UUID, Long> nextSwapTicks() {
@@ -56,7 +53,7 @@ public final class BodyController {
         System.out.println("next swap is at " + body.nextSwapTick + " currentStage ="  + index);
         for (Map.Entry<UUID, Long> entry : tickMap.entrySet()) {
 
-            System.out.println("Player " + Bukkit.getPlayer(entry.getKey()).getName() + "'s next swap is at " + entry.getValue());
+            //System.out.println("Player " + Bukkit.getPlayer(entry.getKey()).getName() + "'s next swap is at " + entry.getValue());
         }
         return tickMap;
     }
@@ -77,7 +74,7 @@ public final class BodyController {
             oldStage = newstage;
         } while (playerIn == playerOut && i < cycle.size());
         if (playerIn != playerOut) {
-            firstSwap = false;
+            oldIndex = index;
             index = (index + i) % cycle.size();
 
             body.setNextSwapTick(orchestrator.scheduleSwap(
@@ -98,4 +95,6 @@ public final class BodyController {
     public void onSwapExecuted() {
         scheduleNext();
     }
+
+    public Body getBody() {return body;}
 }

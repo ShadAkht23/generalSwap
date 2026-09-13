@@ -2,17 +2,26 @@ package com.shard.generalswap.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerSetSpawnEvent;
 import com.shard.generalswap.SwapPlugin;
+import com.shard.generalswap.body.ActiveBody;
 import com.shard.generalswap.body.Body;
+import com.shard.generalswap.body.BodyController;
+import com.shard.generalswap.body.SwappedOut;
+import com.shard.generalswap.game.GameManager;
 import com.shard.generalswap.game.SwapOrchestrator;
+import com.shard.generalswap.game.Visualizer;
 import com.shard.generalswap.state.PlayerInBody;
 import com.shard.generalswap.state.PlayerState;
+import com.shard.generalswap.util.Colours;
 import com.shard.generalswap.util.PlayerStateUtil;
 import io.papermc.paper.event.player.AbstractChatEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EnderPearl;
@@ -24,33 +33,46 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.UUID;
 
 public class EventListeners implements Listener {
 
-    private SwapPlugin plugin = SwapPlugin.get();
+    private final GameManager gameManager;
+    private final PlayerInBody playerInBody;
+    private final SwapOrchestrator swapOrchestrator;
 
+    public EventListeners(GameManager gameManager, PlayerInBody playerInBody, SwapOrchestrator orchestrator) {
+        this.gameManager = gameManager;
+        this.playerInBody = playerInBody;
+        this.swapOrchestrator = orchestrator;
+    }
 
     // don't allow caged players to take damage
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAnyDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         // Cancel any damage to inactive runners in cages
-        if (!plugin.getGameManager().gameStarted()) return;
-        if (plugin.getGameManager().isSwappedOut(victim.getUniqueId())) {
+        if (!gameManager.gameStarted()) return;
+        if (gameManager.isSwappedOut(victim.getUniqueId())) {
             //event.setCancelled(true);
         }
 
     }
 
-
     // handle spawn point tied to body not player
     @EventHandler
     public void onPlayerSpawnPointChange(PlayerSetSpawnEvent event) {
-        if (!plugin.getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
         if (!(event.getCause() == PlayerSetSpawnEvent.Cause.BED ||
             event.getCause() == PlayerSetSpawnEvent.Cause.RESPAWN_ANCHOR ||
@@ -61,127 +83,63 @@ public class EventListeners implements Listener {
         Player p  = event.getPlayer();
         Location loc = event.getLocation();
         if (loc != null) {
-            Body body = plugin.getGameManager().playerInBody.getBody(p.getUniqueId());
+            Body body = playerInBody.getBody(p.getUniqueId());
             body.setSpawn(loc);
             System.out.println("player reset spawn location");
         }
 
     }
 
-
     // don't allow movement if in cage
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         // If the player is an inactive runner, prevent movement
-        if (plugin.getGameManager().gameStarted() &&
-                plugin.getGameManager().isPlaying(player.getUniqueId()) &&
-                plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
+        if (gameManager.gameStarted() &&
+                gameManager.isPlaying(player.getUniqueId()) &&
+                gameManager.isSwappedOut(player.getUniqueId())) {
 
-            // Check if getTo() is not null to prevent NullPointerException
-            if (event.getTo() != null) {
-                // Only cancel if the player is actually trying to move (not just looking around)
-                if (event.getFrom().getX() != event.getTo().getX() ||
-                        event.getFrom().getY() != event.getTo().getY() ||
-                        event.getFrom().getZ() != event.getTo().getZ()) {
+            // Only cancel if the player is actually trying to move (not just looking around)
+            if (event.getFrom().getX() != event.getTo().getX() ||
+                    event.getFrom().getY() != event.getTo().getY() ||
+                    event.getFrom().getZ() != event.getTo().getZ()) {
 
-                    event.setCancelled(true);
-                }
+                event.setCancelled(true);
             }
         }
     }
-
-
 
     // save state when disconnect
     @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent event) {
-        if (!SwapPlugin.get().getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
-        PlayerInBody playerInBody = plugin.getGameManager().playerInBody;
-        PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
-        Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
-        if (body != null && !body.getName().equals("SWAPPED OUT")) {
-            body.set(playerState);
-        }
-    }
 
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
-            Player player = event.getPlayer();
-            if (player.hasMetadata("cancel_next_pearl")) {
-                event.setCancelled(true);
-                player.removeMetadata("cancel_next_pearl", plugin);
+        switch (playerInBody.getBodyAssignment(event.getPlayer().getUniqueId())) {
+            case ActiveBody(Body body) -> {
+                PlayerState playerState = PlayerStateUtil.capturePlayerState(event.getPlayer());
+                body.set(playerState);
             }
-
+            default -> {}
         }
     }
-
-    @EventHandler
-    public void OnProjectileHit(ProjectileHitEvent event) {
-        if (!SwapPlugin.get().getGameManager().gameStarted())
-            return;
-        PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
-        if (event.getEntity() instanceof EnderPearl) {
-            EnderPearl pearl = (EnderPearl) event.getEntity();
-            UUID uuid = playerInBody.getPendingEnderPearlSwap(pearl);
-            if (uuid != null) {
-                Player player = Bukkit.getPlayer(uuid);
-                if (player != null) {
-                    // they joined back. set them to be shooter and let the event do its thing
-                    pearl.setShooter(player);
-                    playerInBody.pearlNotPending(pearl);
-                } else {
-                    // still offline.
-                    // get location of pearl landing:
-                    Location loc = null;
-                    Block block = event.getHitBlock();
-                    if (block != null) {
-                        loc = block.getLocation();
-                    }
-
-                    Entity entity = event.getHitEntity();
-                    if (entity != null) {
-                        loc = entity.getLocation();
-                    }
-                    if (loc == null) {
-                        System.err.println("Couldn't resolve pearl landing position");
-                    }
-                    Body body = playerInBody.getBody(uuid);
-                    body.setPearlLand(loc);
-                    ((Player)pearl.getShooter()).setMetadata("cancel_next_pearl", new FixedMetadataValue(plugin, true));
-                    System.out.println("cancelling projectilie event");
-                }
-            }
-        }
-    }
-
-
 
     // if joined after swap and they are swapped in,
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!SwapPlugin.get().getGameManager().gameStarted())
+        if (!gameManager.gameStarted())
             return;
 
         Bukkit.getScheduler().runTaskLater(SwapPlugin.get(), () -> {
             UUID pid = event.getPlayer().getUniqueId();
-            PlayerInBody playerInBody = SwapPlugin.get().getGameManager().playerInBody;
             if (!playerInBody.isStateApplied(pid)) {
-
-                Body body = playerInBody.getBody(pid);
                 Player player = event.getPlayer();
-                SwapOrchestrator orchestrator = SwapPlugin.get().getGameManager().getOrchestrator();
-                if (body == null) {
-                    return;
-                }
-                if (body.getName().equals("SWAPPED OUT")) {
-                    // swap them out
-                    orchestrator.doSwapOut(player);
-                } else {
-                    // swap them in
-                    orchestrator.doSwapIn(player, body);
+                switch (playerInBody.getBodyAssignment(pid)) {
+                    case ActiveBody(Body body) -> {
+                        swapOrchestrator.doSwapIn(player, body);
+                    }
+                    case SwappedOut i ->
+                        swapOrchestrator.doSwapOut(player);
                 }
             }
         }, 10
@@ -190,41 +148,18 @@ public class EventListeners implements Listener {
 
 
     @EventHandler
-    public void onAdvancement(PlayerAdvancementDoneEvent event) {
-        Component msg = event.message();
-        Component empty = Component.empty();
-        //Component notEmpty = Component.empty().content("received advancement");
-        event.message(empty);
-        if (msg == null)
+    public void onPlayerPortal(PlayerPortalEvent event) {
+        if (!gameManager.gameStarted())
             return;
-        if (plugin.getGameManager().gameStarted()) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
-                    // only add if they are about to get swapped into the player who owns this body??
-                    plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
-                } else {
-                    player.sendMessage(msg);
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        Component msg = event.deathMessage();
-        if (msg == null)
+        if (!gameManager.isRunnerRn(event.getPlayer().getUniqueId()))
             return;
-        if (plugin.getGameManager().gameStarted()) {
-            event.setShowDeathMessages(false);
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (plugin.getGameManager().isSwappedOut(player.getUniqueId())) {
-                    plugin.getGameManager().playerInBody.appendPendingChatMsg(player.getUniqueId(), msg);
-                } else {
-                    player.sendMessage(msg);
-                }
-            }
+        Body body = playerInBody.getBody(event.getPlayer().getUniqueId());
+        Location from = event.getFrom();
+        if (from.getWorld().getEnvironment() == World.Environment.NORMAL) {
+            body.setLastKnownOverworldLoc(from);
+        } else if (from.getWorld().getEnvironment() == World.Environment.NETHER) {
+            body.setLastKnownNetherLoc(from);
         }
-
     }
 
 }

@@ -44,6 +44,9 @@ public class PlayerState {
     private final int portalCooldown;
     private final List<ItemStack> invOverflow;
     private Collection<EnderPearl> airbornePearls;
+    private Location trackingTarget;
+    private Location lastOverworldLoc;
+    private Location lastNetherLoc;
 
 
     public PlayerState(ItemStack[] inventory, ItemStack[] armor, ItemStack offhand, Location location,
@@ -53,7 +56,8 @@ public class PlayerState {
                        boolean allowFlight, boolean flying, Collection<PotionEffect> activePotionEffects,
                        double absorptionAmount, Entity vehicle, boolean inVehicle, int ticksLived,
                        double lastDamage, int noDamageTicks, boolean gliding, float walkSpeed,
-                       float flySpeed, int portalCooldown, List<ItemStack> invoverflow, Collection<EnderPearl> airbornePearls) {
+                       float flySpeed, int portalCooldown, List<ItemStack> invoverflow, Collection<EnderPearl> airbornePearls,
+                       Location trackingTarget, Location lastOverworldLoc, Location lastNetherLoc) {
         this.inventory = inventory;
         this.armor = armor;
         this.offhand = offhand;
@@ -85,6 +89,11 @@ public class PlayerState {
         this.portalCooldown = portalCooldown;
         this.invOverflow = invoverflow;
         this.airbornePearls = airbornePearls;
+        this.trackingTarget = trackingTarget;
+        if (lastOverworldLoc != null)
+            this.lastOverworldLoc = lastOverworldLoc;
+        if (lastNetherLoc != null)
+            this.lastNetherLoc = lastNetherLoc;
     }
 
 
@@ -210,10 +219,24 @@ public class PlayerState {
 
     public Collection<EnderPearl> getAirbornePearls() {return airbornePearls; }
 
+    public Location getTrackingTarget() { return trackingTarget; }
 
+    public Location getLastOverworldLoc() {return lastOverworldLoc; }
+
+    public Location getLastNetherLoc() {return lastNetherLoc; }
+
+    public void setTrackingTarget(Location loc) {trackingTarget = loc;}
 
     public void setPearlLandLoc(Location loc) {
         location = loc;
         vehicle = null;
+    }
+
+    public void setLastOverworldLoc(Location loc) {
+        lastOverworldLoc = loc;
+    }
+
+    public void setLastNetherLoc(Location loc) {
+        lastNetherLoc = loc;
     }
 }

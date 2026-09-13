@@ -4,12 +4,17 @@ import com.shard.generalswap.SwapPlugin;
 import com.shard.generalswap.body.Body;
 import com.shard.generalswap.body.BodyController;
 import com.shard.generalswap.body.SwapStage;
+import com.shard.generalswap.state.PendingChatMsgs;
 import com.shard.generalswap.state.PlayerInBody;
+import com.shard.generalswap.util.BodyConfig;
 import com.shard.generalswap.util.ConfigSwapStage;
 import com.shard.generalswap.util.Configuration;
+import com.shard.generalswap.util.PlayerStateUtil;
 import jdk.management.jfr.ConfigurationInfo;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
@@ -22,19 +27,21 @@ public class GameManager {
     private final Configuration config;
     private final InactiveManager inactiveManager;
     private final Visualizer visualizer;
+    private final PendingChatMsgs pendingChatMsgs;
     private BukkitTask curTickTask;
 
     public PlayerInBody playerInBody;
-    public long startTick = 0;
     boolean started = false;
 
-    public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager) {
+    public GameManager(SwapPlugin p, SwapOrchestrator o, Configuration c, InactiveManager inactiveManager, PlayerInBody playerInBody, Visualizer visualizer, PendingChatMsgs pendingChatMsgs) {
         plugin = p;
         orchestrator = o;
         config = c;
         controllers = new ArrayList<>();
         this.inactiveManager = inactiveManager;
-        visualizer = new Visualizer();
+        this.visualizer = visualizer;
+        this.playerInBody = playerInBody;
+        this.pendingChatMsgs = pendingChatMsgs;
     }
 
 
@@ -61,18 +68,23 @@ public class GameManager {
                 players.add(player.getUniqueId());
             }
         }
-        playerInBody = new PlayerInBody(players);
+        playerInBody.initialize(players);
 
         Set<UUID> swappedIn = new HashSet<>();
 
-        for (Map.Entry<String, List<ConfigSwapStage>> css : config.bodies().entrySet()) {
+        for (Map.Entry<String, BodyConfig> css : config.bodies().entrySet()) {
             List<SwapStage> swapStages = new ArrayList<>();
-            for (ConfigSwapStage ss : css.getValue()) {
+            for (ConfigSwapStage ss : css.getValue().stages()) {
                 swapStages.add(new SwapStage(Bukkit.getPlayer(ss.playerName()).getUniqueId(), ss.durationTicks()));
             }
-            BodyController controller = new BodyController(null, css.getKey(), swapStages, orchestrator);
+            BodyController controller = new BodyController(null, css.getKey(), swapStages, css.getValue().role() , orchestrator);
             controller.start();
             swappedIn.add(controller.currentHost());
+            Player player = Bukkit.getPlayer(controller.currentHost());
+            if (controller.getBody().isHunter()) {
+                player.give(new ItemStack(Material.COMPASS));
+            }
+            controller.getBody().set(PlayerStateUtil.capturePlayerState(player));
             controllers.add(controller);
         }
         players.removeAll(swappedIn);
@@ -86,7 +98,6 @@ public class GameManager {
             }
         }
 
-        startTick = Bukkit.getCurrentTick() + 1;
         curTickTask = Bukkit.getScheduler().runTaskTimer(plugin, orchestrator::tick, 1L, 1L);
         visualizer.startActionBarUpdates();
     }
@@ -111,12 +122,39 @@ public class GameManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             inactiveManager.makeActive(player);
         }
-        getOrchestrator().reset();
+        orchestrator.reset();
+        pendingChatMsgs.clear();
     }
 
-    public SwapOrchestrator getOrchestrator() {
-        return orchestrator;
+    public List<Body> getHunters() {
+        return controllers.stream()
+                .map(BodyController::getBody)
+                .filter(Body::isHunter)
+                .toList();
     }
-    public InactiveManager getInactiveManager() {return inactiveManager;}
+
+    public List<BodyController> getRunners() {
+        return controllers.stream()
+                .filter(c -> c.getBody().isRunner())
+                .toList();
+    }
+
+    public boolean isHunterRn(UUID player) {
+        for (BodyController controller : controllers) {
+            if (controller.getBody().isHunter() && controller.currentHost() == player) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isRunnerRn(UUID player) {
+        for (BodyController controller : controllers) {
+            if (controller.getBody().isRunner() && controller.currentHost() == player) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 

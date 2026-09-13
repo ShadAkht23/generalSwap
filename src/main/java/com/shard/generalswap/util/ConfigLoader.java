@@ -1,5 +1,7 @@
 package com.shard.generalswap.util;
 
+import com.shard.generalswap.body.Body;
+import com.shard.generalswap.body.Role;
 import com.shard.generalswap.body.SwapStage;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
@@ -18,7 +20,7 @@ public final class ConfigLoader {
 
 
     public static Configuration loadBodies(File file) throws IOException {
-        Map<String, List<ConfigSwapStage>> result = new HashMap<>();
+        Map<String, BodyConfig> result = new HashMap<>();
         Set<String> players = new HashSet<>();
         for (String line : Files.readAllLines(file.toPath())) {
             line = line.trim();
@@ -26,11 +28,24 @@ public final class ConfigLoader {
 
             // bodyName = [A:60, B:30]
             String[] parts = line.split("=", 2);
-            String bodyName = parts[0].trim();
+            String decl = parts[0].trim();
+
+            String bodyName;
+            Role role;
+            if (decl.contains(":")) {
+                String[] declSplit = decl.split(":", 2);
+                bodyName = declSplit[0].trim();
+                role = Role.valueOf(declSplit[1].trim().toUpperCase());
+            } else {
+                bodyName = decl;
+                role = Role.NONE;
+            }
+
             String right = parts[1].trim();
 
             ImmutablePair<List<ConfigSwapStage>, Set<String>> stages = parseStages(right);
-            result.put(bodyName, stages.left);
+            BodyConfig config = new BodyConfig(role, stages.left);
+            result.put(bodyName, config);
             players.addAll(stages.right);
         }
 
